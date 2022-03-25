@@ -16,10 +16,70 @@ from pprint import pprint
 from concurrent.futures import as_completed
 from requests_futures.sessions import FuturesSession
 import time
+import textwrap
+
+from bokeh.models import ColumnDataSource, OpenURL, TapTool, HoverTool
+from bokeh.plotting import figure, show
+from bokeh.io import output_notebook
+from bokeh.transform import dodge
+from bokeh.core.properties import value
+from bokeh.models import Title
+
+from bokeh.models.tools import TapTool
+import numpy as np
+
+from bokeh.io import curdoc, show
+from bokeh.models import ColumnDataSource, Grid, ImageURL, LinearAxis, Plot, Range1d
 
 _domain = "https://letterboxd.com"
 film_ratings = []
 film_cache = pd.read_excel('./film_cache.xlsx')
+
+def get_poster_link(movie_links):
+    with FuturesSession() as session:
+        futures = [session.get(ele) for ele in tqdm(movie_links)]
+        poster_links = dict()
+        for future in as_completed(futures):
+            temp = future.result()
+            if temp.status_code != 200:
+                print("PAGE NOT FOUND")
+                poster_links[temp.url]=None
+                continue
+            soup = BeautifulSoup(temp.content, 'html.parser')
+            panel = soup.find('div', class_="film-poster").find('img')
+            poster_links[temp.url]=panel['src'].split("?")[0]
+    return poster_links
+
+def get_image_from_url(image_url, film_row):
+  source = ColumnDataSource(dict(
+      url = [image_url],
+      x1  = [0],
+      y1  = [0],
+      w1  = [230],
+      h1  = [345],
+      x2  = [0],
+      y2  = [0],
+  ))
+
+  plot = Plot(
+      title=None, width=230, height=345,
+      min_border=0, toolbar_location=None,
+      background_fill_color = "#101010",
+      border_fill_color = "#101010",
+      outline_line_color=  "#101010")
+
+  # plot.image_url(url="url", x="x1", y="y1", w="w1", h="h1", anchor="center", source=source)
+  image1 = ImageURL(url="url", x="x1", y="y1", w="w1", h="h1", anchor="center")
+  plot.add_glyph(source, image1)
+  subtitle_string = f"{film_row['film_name']}, {film_row['year']} || {inverse_transform_ratings(str(film_row['rating']))}"
+  wrapper = textwrap.TextWrapper(width=30)
+  subtitle_string = wrapper.fill(text=subtitle_string)
+  subtitle_string = subtitle_string.split('||')[0].strip('\n') + '\n' + subtitle_string.split('||')[1].replace('\n', '')
+
+  plot.add_layout(Title(text=subtitle_string, 
+                        align="center", text_color="white"), "below")
+
+  return plot
 
 def get_film_data(filmget):
   # film_page="https://letterboxd.com/film/phantom-thread/"
@@ -212,7 +272,7 @@ def get_film_df(user_name):
 
       print(len(ratings), time.time()-t1)
 
-    st.markdown(f"#### 2. Fetched {len(ratings)} ratings from {user_name}! Fetching movie data...")
+    st.markdown(f"##### 2. Fetched {len(ratings)} ratings from {user_name}! Fetching movie data...")
             
     films_url_list = [ele[-1] for ele in ratings]
     films_url_list_new = [film_url for film_url in films_url_list if film_url not in film_cache['lbxd_link'].values.tolist()]
@@ -228,7 +288,7 @@ def get_film_df(user_name):
 
       print(len(ffd), time.time()-t1)
 
-    st.markdown(f"#### 3. Fetched {len(ratings)} movies!")
+    st.markdown(f"##### 3. Fetched {len(ratings)} movies!")
     print(f"Fetched {len(ffd)} movies! {len(films_url_list)-len(films_url_list_new)} found in cache.")
 
     #all ratings of the user
@@ -272,8 +332,13 @@ def make_horizontal_bar_chart(data, x, y, color=None, text=None, ccs=None):
             orientation='h',
             color_discrete_sequence=[ccs]*len(data)
         )
-    fig.update_traces(hovertemplate=
-                      '%{x} <b>films</b>')
+    
+    if "rating" in x:
+        fig.update_traces(hovertemplate=
+                          '%{x:.2f} <b>rating</b>')
+    else:
+        fig.update_traces(hovertemplate=
+                          '%{x} <b>films</b>')
     fig.update_layout(barmode='stack', yaxis={'categoryorder':'total ascending'})
     fig.update_layout(yaxis_visible=True, yaxis_showticklabels=True, xaxis_title=None, 
                     yaxis_title=None, xaxis_visible=False, plot_bgcolor='#101010')
@@ -333,7 +398,7 @@ def main():
         need_help = st.expander('Need help? 👉')
         with need_help:
             st.markdown(
-                "Having trouble finding your Letterboxd profile? Head to the [Letterboxd website](https://www.letterboxd.com/) and click profile in the top right corner.")
+                "Having trouble finding your Letterboxd profile? Head to the [Letterboxd website](https://www.letterboxd.com/) and click your profile at the top.")
 
         if not user_input:
             user_input = f"{default_username}"
@@ -346,15 +411,19 @@ def main():
         if user_input==default_username:
             df = pd.read_excel('./letterboxd_film_data1.xlsx')
         else:
-            st.markdown(f"#### 1. Fetching profile of {user_input}")
-            df = get_film_df(user_input)
-            if isinstance(df, int) and df==0:
-                st.markdown(f"### Username {user_input} not found!")
-                return 0
+            with st.spinner(text="Good things come to those who wait..."):
+                st.markdown(f"##### 1. Fetching profile of {user_input}")
+                df = get_film_df(user_input)
+                if isinstance(df, int) and df==0:
+                    st.markdown(f"### Username {user_input} not found!")
+                    return 0
 
-        st.markdown(f"### Analyzing Profile of {user_input}")
+        st.markdown(f"## Analyzing {user_input}'s profile")
+        st.markdown("""---""")
+        
 
-        st.markdown(f"#### Number of films by release year")
+        st.subheader("*Years* in film...explored by you")
+        st.markdown(f"#### Number of films you watched across release years")
         
         df_count = df[['film_name', 'year']].groupby(by=['year']).count()
         df_count['year'] = df_count.index
@@ -374,28 +443,7 @@ def main():
                         ccs="sunset")
         st.plotly_chart(fig, use_container_width=True)
 
-
-
-        st.markdown(f"#### Number of films by release decade")
-
-        fig = make_bar_chart( data = df_count2,
-                        x = "decade",
-                        y = "film_name",
-                        color = "decade",
-                        ccs="emrld")
-        st.plotly_chart(fig, use_container_width=True)
-
-
-        st.markdown(f"#### Average rating by release decade")
-        
-        fig = make_bar_chart( data = df_count2,
-                        x = "decade",
-                        y = "decade_rating",
-                        color = "decade",
-                        ccs="agsunset")
-        st.plotly_chart(fig, use_container_width=True)
-
-        st.markdown(f"#### Average rating by release year")
+        st.markdown(f"#### Average ratings you gave to each year")
         
         fig = make_bar_chart( data = df_count,
                         x = "year",
@@ -405,7 +453,30 @@ def main():
         st.plotly_chart(fig, use_container_width=True)
 
 
-        st.markdown(f"#### Highest rated decades")
+        st.subheader("Decades in film!")
+        st.markdown(f"#### Decades of films...watched by you!")
+
+        fig = make_bar_chart( data = df_count2,
+                        x = "decade",
+                        y = "film_name",
+                        color = "decade",
+                        ccs="emrld")
+        st.plotly_chart(fig, use_container_width=True)
+
+
+        st.markdown(f"#### Average ratings you gave to each decade of film...")
+        
+        fig = make_bar_chart( data = df_count2,
+                        x = "decade",
+                        y = "decade_rating",
+                        color = "decade",
+                        ccs="agsunset")
+        st.plotly_chart(fig, use_container_width=True)
+
+
+        st.markdown(f"### Your favourite decades")
+        st.markdown(f"##### ...and a handful of your favourites from them")
+        
         hide_dataframe_row_index = """
             <style>
             .row_heading.level0 {display:none}
@@ -414,22 +485,62 @@ def main():
                     """
 
         # Inject CSS with Markdown
-        st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
+        # st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
         
-        for name, group in df_count[['year', 'decade']][df_count['decade'].isin(df_count2.nlargest(3, 'decade_rating')['decade'].values.tolist())].groupby(by=['decade']):
+        # for name, group in df_count[['year', 'decade']][df_count['decade'].isin(df_count2.nlargest(3, 'decade_rating')['decade'].values.tolist())].groupby(by=['decade']):
+        #     need_help = st.expander(f'{name}s')
+        #     with need_help:
+        #         df_group = df[['film_name', 'year', 'rating', 'lbxd_link']][df['year'].isin(group['year'].values.tolist())].nlargest(5, 'rating')
+        #         # st.dataframe(df_group)
+
+        #         for idx, row in df_group.iterrows():
+        #             st.markdown(f"""* [{row['film_name']}]({row['lbxd_link']}) ({row['year']}) {inverse_transform_ratings(str(row['rating']))}""")
+        
+        lbxd_list=[]
+        v = df_count['decade'].value_counts()
+        df_decade_cnt_filtered=df_count[['year_rating', 'decade']][(df_count['decade'].isin(v[v>2].index.values.tolist()))]
+        
+        df_decade_cnt_filtered['decade_rating'] = df_decade_cnt_filtered[['year_rating', 'decade']].groupby(by=['decade']).mean()['year_rating']
+
+        print(f"df_decade_cnt_filtered {len(df_decade_cnt_filtered)}")
+
+        for name, group in df_count[(df_count['decade'].isin(df_decade_cnt_filtered.nlargest(3, 'decade_rating')['decade'].values.tolist()))].groupby(by=['decade']):
+          df_group = df[['rating', 'lbxd_link']][df['year'].isin(group['year'].values.tolist())].nlargest(5, 'rating').reset_index(drop=True).drop('rating', axis=1)
+          lbxd_list=lbxd_list+df_group['lbxd_link'].values.tolist()
+        
+        poster_links = get_poster_link(lbxd_list)
+
+        for name, group in df_count[(df_count['decade'].isin(df_decade_cnt_filtered.nlargest(3, 'decade_rating')['decade'].values.tolist()))].groupby(by=['decade']):
             need_help = st.expander(f'{name}s')
             with need_help:
-                df_group = df[['film_name', 'year', 'rating', 'lbxd_link']][df['year'].isin(group['year'].values.tolist())].nlargest(10, 'rating')
-                # st.dataframe(df_group)
+                df_group = df[['film_name', 'year', 'rating', 'lbxd_link']][df['year'].isin(group['year'].values.tolist())].nlargest(5, 'rating').reset_index(drop=True)
+                num_movies_in_group = len(df_group)
 
-                for idx, row in df_group.iterrows():
-                    st.markdown(f"""* [{row['film_name']}]({row['lbxd_link']}) ({row['year']}) {inverse_transform_ratings(str(row['rating']))}""")
-                
-        st.write('')
+                film_poster_rows = st.columns((10,10,10,10,10))
+                blank_spots = len(film_poster_rows)-len(df_group)
+
+                df_group=df_group.reindex(list(range(0, len(film_poster_rows)))).reset_index(drop=True)
+
+                cnt=0
+                for poster_row, (idx, row) in zip(film_poster_rows, df_group.iterrows()):
+                    cnt=cnt+1
+                    with poster_row:
+                        if cnt>num_movies_in_group and blank_spots>0:
+                            st.markdown(" ")
+                        else:
+                            st.bokeh_chart(get_image_from_url(poster_links[row['lbxd_link']], row))
+                            # st.markdown(f"""[{row['film_name']}]({row['lbxd_link']}) ({row['year']}) {inverse_transform_ratings(str(row['rating']))}""")
+                            # st.markdown(f"""{inverse_transform_ratings(str(row['rating']))}""")
+                        
+        st.markdown(f'\n')
+        st.markdown("""---""")
+        st.markdown('## Find yourself in the films you watch')
+        
         row3_space1, row3_1, row3_space2, row3_2, row3_space3, row3_3, row4_space4 = st.columns(
             (.1, 15, .1, 15, .1, 15, 1.))
         with row3_1:
             st.subheader('Genres')
+            st.markdown(f'#### that you __watched__ the most...')
 
             df_genre = df[['film_name', 'genres']]
             df_genre=df_genre[~(df_genre['genres']==np.nan) & (df_genre['genres'].notna())].reset_index().drop('index', axis=1)
@@ -455,9 +566,45 @@ def main():
             
             st.plotly_chart(fig, use_container_width=True)
 
+            st.markdown(f'#### that you *loved* the most...')
+
+            df_genre_rating = df[['rating', 'genres']]
+            df_genre_rating=df_genre_rating[~(df_genre_rating['genres']==np.nan) & (df_genre_rating['genres'].notna())].reset_index().drop('index', axis=1)
+
+            if isinstance(df_genre_rating['genres'].values.tolist()[0], str):
+              df_genre_rating['genres'] = df_genre_rating['genres'].apply(lambda x: ast.literal_eval(x))
+            # else:
+            df_genre_rating['only_genre'] = df_genre_rating['genres'] #.apply(lambda x: list(ast.literal_eval(x)))
+
+            df_genre_rating['only_genre'] = [[e[0] for e in ele] if ele is not np.nan else ele for ele in df_genre_rating['only_genre'].values.tolist()]
+            df_genre_rating=df_genre_rating[df_genre_rating['genres'].notna()].reset_index().drop('index', axis=1)
+            df_genre_rating.index = df_genre_rating['rating']
+            df_genre_rating=df_genre_rating['only_genre'].explode()
+            # df_genre_rating['index'] = df_genre_rating.index
+            df_genre_rating2=pd.DataFrame(columns=['rating', 'only_genre'])
+            df_genre_rating2['rating']=df_genre_rating.index.values.tolist()
+            df_genre_rating2['only_genre']=df_genre_rating.values.tolist()
+
+            v = df_genre_rating2['only_genre'].value_counts()
+            df_genre_rating2=df_genre_rating2[df_genre_rating2['only_genre'].isin(v[v>5].index.values.tolist())]
+
+            df_genre_rating_cnt=df_genre_rating2.groupby(by=['only_genre']).mean().sort_values(by=['rating'], ascending=False)
+            df_genre_rating_cnt=df_genre_rating_cnt.nlargest(10, 'rating')
+            df_genre_rating_cnt['only_genre']=df_genre_rating_cnt.index
+            df_genre_rating_cnt.reset_index(drop=True, inplace=True)
+
+            fig = make_horizontal_bar_chart(data = df_genre_rating_cnt,
+                                      y = "only_genre",
+                                      x = "rating",
+                                      ccs="lightseagreen")
+            
+            st.plotly_chart(fig, use_container_width=True)
+            df_genre_rating=None
+
         with row3_2:
             st.subheader('Languages')
-            
+            st.markdown(f'<p style="background-color:#101010;color:#101010;font-size:24px;">--</p>', unsafe_allow_html=True)
+
             df_lang = df[['film_name', 'langs']]
             df_lang=df_lang[~(df_lang['langs']==np.nan) & (df_lang['langs'].notna())].reset_index().drop('index', axis=1)
 
@@ -479,10 +626,47 @@ def main():
 
             st.plotly_chart(fig, use_container_width=True)
 
+
+            st.markdown(f'<p style="background-color:#101010;color:#101010;font-size:24px;">--</p>', unsafe_allow_html=True)
+            
+            df_lang_rating = df[['rating', 'langs']]
+            df_lang_rating=df_lang_rating[~(df_lang_rating['langs']==np.nan) & (df_lang_rating['langs'].notna())].reset_index().drop('index', axis=1)
+
+            if isinstance(df_lang_rating['langs'].values.tolist()[0], str):
+              df_lang_rating['langs'] = df_lang_rating['langs'].apply(lambda x: ast.literal_eval(x))
+            # else:
+            df_lang_rating['only_lang'] = df_lang_rating['langs'] #.apply(lambda x: list(ast.literal_eval(x)))
+
+            df_lang_rating['only_lang'] = [[e for e in ele] if ele is not np.nan else ele for ele in df_lang_rating['only_lang'].values.tolist()]
+            df_lang_rating=df_lang_rating[df_lang_rating['langs'].notna()].reset_index().drop('index', axis=1)
+            df_lang_rating.index = df_lang_rating['rating']
+            df_lang_rating=df_lang_rating['only_lang'].explode()
+
+            df_lang_rating2=pd.DataFrame(columns=['rating', 'only_lang'])
+            df_lang_rating2['rating']=df_lang_rating.index.values.tolist()
+            df_lang_rating2['only_lang']=df_lang_rating.values.tolist()
+
+            v = df_lang_rating2['only_lang'].value_counts()
+            df_lang_rating2=df_lang_rating2[df_lang_rating2['only_lang'].isin(v[v>5].index.values.tolist())]
+
+            df_lang_rating_cnt=df_lang_rating2.groupby(by=['only_lang']).mean().sort_values(by=['rating'], ascending=False)
+            df_lang_rating_cnt=df_lang_rating_cnt.nlargest(10, 'rating')
+            df_lang_rating_cnt['only_lang']=df_lang_rating_cnt.index
+            df_lang_rating_cnt.reset_index(drop=True, inplace=True)
+
+            fig = make_horizontal_bar_chart(data = df_lang_rating_cnt,
+                                      y = "only_lang",
+                                      x = "rating",
+                                      ccs="crimson")
+            
+            st.plotly_chart(fig, use_container_width=True)
+            df_lang_rating=None
+
         with row3_3:
             st.subheader('Countries')
+            # st.markdown(f'#### ----')
+            st.markdown(f'<p style="background-color:#101010;color:#101010;font-size:24px;">--</p>', unsafe_allow_html=True)
 
-            
             df_country = df[['film_name', 'countries']]
             df_country=df_country[~(df_country['countries']==np.nan) & (df_country['countries'].notna())].reset_index().drop('index', axis=1)
 
@@ -495,6 +679,9 @@ def main():
             df_country=df_country['only_country'].explode().reset_index()
             df_country['index'] = df_country.index
 
+            v = df_country['only_country'].value_counts()
+            df_country=df_country[df_country['only_country'].isin(v[v>5].index.values.tolist())]
+
             df_country_cnt=df_country.groupby(by=['only_country']).count().sort_values(by=['index'], ascending=False)
             df_country_cnt['only_country'] = df_country_cnt.index
             df_country_cnt=df_country_cnt.nlargest(10, 'index')
@@ -502,39 +689,200 @@ def main():
             fig = make_horizontal_bar_chart(data = df_country_cnt,
                                       y = "only_country",
                                       x = "index",
-                                      ccs="crimson")
+                                      ccs="green")
             
             st.plotly_chart(fig, use_container_width=True)
+
+
+            st.markdown(f'<p style="background-color:#101010;color:#101010;font-size:24px;">--</p>', unsafe_allow_html=True)
+
+            df_country_rating = df[['rating', 'countries']]
+            df_country_rating=df_country_rating[~(df_country_rating['countries']==np.nan) & (df_country_rating['countries'].notna())].reset_index().drop('index', axis=1)
+
+            if isinstance(df_country_rating['countries'].values.tolist()[0], str):
+              df_country_rating['countries'] = df_country_rating['countries'].apply(lambda x: ast.literal_eval(x))
+            # else:
+            df_country_rating['only_country'] = df_country_rating['countries'] #.apply(lambda x: list(ast.literal_eval(x)))
+
+            df_country_rating['only_country'] = [[e for e in ele] if ele is not np.nan else ele for ele in df_country_rating['only_country'].values.tolist()]
+            df_country_rating=df_country_rating[df_country_rating['countries'].notna()].reset_index().drop('index', axis=1)
+            df_country_rating.index = df_country_rating['rating']
+            df_country_rating=df_country_rating['only_country'].explode()
+
+            df_country_rating2=pd.DataFrame(columns=['rating', 'only_country'])
+            df_country_rating2['rating']=df_country_rating.index.values.tolist()
+            df_country_rating2['only_country']=df_country_rating.values.tolist()
+
+            df_country_rating_cnt=df_country_rating2.groupby(by=['only_country']).mean().sort_values(by=['rating'], ascending=False)
+            df_country_rating_cnt=df_country_rating_cnt.nlargest(10, 'rating')
+            df_country_rating_cnt['only_country']=df_country_rating_cnt.index
+            df_country_rating_cnt.reset_index(drop=True, inplace=True)
+
+            fig = make_horizontal_bar_chart(data = df_country_rating_cnt,
+                                      y = "only_country",
+                                      x = "rating",
+                                      ccs="green")
+            
+            st.plotly_chart(fig, use_container_width=True)
+            df_country_rating=None
+
 
         st.write('')
 
         #top themes
-        st.subheader('Top Themes')
+        st.subheader('Themes')
+        st.markdown(f"""###### Click on the theme to view your films""")
 
-        df_theme = df[['film_name', 'themes']]
+        df_theme = df[['rating', 'themes']]
         df_theme=df_theme[~(df_theme['themes']==np.nan) & (df_theme['themes'].notna())].reset_index().drop('index', axis=1)
 
         if isinstance(df_theme['themes'].values.tolist()[0], str):
             df_theme['themes'] = df_theme['themes'].dropna().apply(lambda x: ast.literal_eval(x))
         
         df_theme['only_theme'] = df_theme['themes']
+        df_theme['only_theme_link'] = df_theme['themes']
+        
         df_theme['only_theme'] = [[e[0] for e in ele] if ele is not np.nan else ele for ele in df_theme['only_theme'].values.tolist()]
-        df_theme=df_theme['only_theme'].explode().reset_index()
+        df_theme['only_theme_link'] = [[e[1] for e in ele] if ele is not np.nan else ele for ele in df_theme['only_theme_link'].values.tolist()]
+        df_theme=df_theme.drop('themes', axis=1)
+
+        df_theme2=df_theme[['rating', 'only_theme']].explode('only_theme').reset_index(drop=True)
+        df_theme3=df_theme['only_theme_link'].explode().reset_index()
+
+        df_theme=df_theme2
+        df_theme['only_theme_link'] = df_theme3['only_theme_link']
+
         df_theme['index'] = df_theme.index
 
-        df_theme_cnt=df_theme.groupby(by=['only_theme']).count().sort_values(by=['index'], ascending=False)
+        df_theme['theme_and_link'] = df_theme['only_theme'] + "||" + df_theme['only_theme_link']
+        df_theme=df_theme.drop(['only_theme', 'only_theme_link'], axis=1)
+
+        df_theme_cnt=df_theme.drop('rating', axis=1).groupby(by=['theme_and_link']).count().sort_values(by=['index'], ascending=False)
         
         df_theme_cnt=df_theme_cnt[~df_theme_cnt.index.str.contains('Show All', regex=False, case=False, na=False)]
-        df_theme_cnt['only_theme'] = df_theme_cnt.index
+        df_theme_cnt['theme_and_link'] = df_theme_cnt.index
+        df_theme_cnt.reset_index(drop=True, inplace=True)
+        
         df_theme_cnt=df_theme_cnt.nlargest(10, 'index')
 
-        fig = make_horizontal_bar_chart(data = df_theme_cnt,
-                                      y = "only_theme",
-                                      x = "index",
-                                      text='index',
-                                      ccs="lightseagreen")
-        st.plotly_chart(fig, use_container_width=True)
+        df_theme_cnt[['only_theme','only_theme_link']] = [val.split('||') for val in df_theme_cnt['theme_and_link'].values.tolist()]
+        df_theme_cnt=df_theme_cnt.drop('theme_and_link', axis=1)
+        # fig = make_horizontal_bar_chart(data = df_theme_cnt,
+        #                               y = "only_theme",
+        #                               x = "index",
+        #                               text='index',
+        #                               ccs="lightseagreen")
+        # st.plotly_chart(fig, use_container_width=True)
 
+        v = df_theme['theme_and_link'].value_counts()
+        df_theme=df_theme[df_theme['theme_and_link'].isin(v[v>5].index.values.tolist())]
+        df_theme_rating=df_theme.drop('index', axis=1).groupby(by=['theme_and_link']).mean().sort_values(by=['rating'], ascending=False)
+
+        df_theme_rating=df_theme_rating[~df_theme_rating.index.str.contains('Show All', regex=False, case=False, na=False)]
+        df_theme_rating['theme_and_link'] = df_theme_rating.index
+        df_theme_rating.reset_index(drop=True, inplace=True)
+
+        df_theme_rating=df_theme_rating.nlargest(10, 'rating')
+        df_theme_rating['rating']=df_theme_rating['rating'].apply(lambda x: round(x,1))
+
+        df_theme_rating[['only_theme','only_theme_link']] = [val.split('||') for val in df_theme_rating['theme_and_link'].values.tolist()]
+        df_theme_rating=df_theme_rating.drop('theme_and_link', axis=1)
+        
+        st.markdown(f"""#### Type of films you **watched** the most...""")
+        
+        row6_space1, row6_1, row6_space2, row6_2, row6_space3, row6_3, row6_space4 = st.columns(
+            (.1, 2, .1, 40, .1, 2, 1.))
+
+        with row6_1:
+            st.markdown("")
+        with row6_2:
+            data = df_theme_cnt.to_dict(orient='list')
+            idx = df_theme_cnt['only_theme'].tolist()
+
+            # user_name = "param_raval"
+            root_link = f"https://letterboxd.com/{user_input}"
+            # theme_links = [i.lower().replace(',', '').replace(' ', '-') for i in idx]
+            # data['theme_links'] = theme_links
+
+            source = ColumnDataSource(data=data)
+
+            x_min = df_theme_cnt['index'].values.min() - 10
+            x_min = 0 if x_min < 0 else x_min
+            p = figure(y_range=idx, x_range=(x_min, df_theme_cnt['index'].values.max() + 5), 
+                       plot_height=350,
+                       toolbar_location=None, tools="tap",
+                       background_fill_color = "#101010",
+                       border_fill_color = "#101010",
+                       outline_line_color = "#101010")
+            p.grid.visible = False
+            p.xaxis.visible = False
+            p.yaxis.axis_line_width = 0
+            p.yaxis.major_tick_line_width = 0
+            p.yaxis.major_label_text_color = "lightgray"
+            p.yaxis.major_label_text_font = "arial"
+            p.yaxis.major_label_text_font_size = '19px'
+            
+            p.hbar(y='only_theme', right='index', height=0.7, source=source,
+                   color="crimson", hover_fill_color="#20b2aa",hover_line_color="#20b2aa")
+            p.add_tools(HoverTool(tooltips="@index films"))
+
+            url = root_link+"@only_theme_link"
+            taptool = p.select(type=TapTool)
+            taptool.callback = OpenURL(url=url)
+
+            st.bokeh_chart(p, use_container_width=True)
+
+        with row6_3:
+            st.markdown("")
+
+
+        st.markdown(f"""#### Types of films you *loved* the most...""")
+        
+        row7_space1, row7_1, row7_space2, row7_2, row7_space3, row7_3, row7_space4 = st.columns(
+            (.1, 2, .1, 40, .1, 2, 1.))
+        
+        with row7_1:
+            st.markdown("")
+        with row7_2:
+            data = df_theme_rating.to_dict(orient='list')
+            idx = df_theme_rating['only_theme'].tolist()
+
+            # user_name = "param_raval"
+            root_link = f"https://letterboxd.com/{user_input}"
+            # theme_links = [i.lower().replace(',', '').replace(' ', '-') for i in idx]
+            # data['theme_links'] = theme_links
+
+            source = ColumnDataSource(data=data)
+
+            x_min = df_theme_rating['rating'].values.min() - 10
+            x_min = 0 if x_min < 0 else x_min
+            p = figure(y_range=idx, x_range=(x_min, df_theme_rating['rating'].values.max() + 5), 
+                       plot_height=350,
+                       toolbar_location=None, tools="tap",
+                       background_fill_color = "#101010",
+                       border_fill_color = "#101010",
+                       outline_line_color = "#101010")
+            p.grid.visible = False
+            p.xaxis.visible = False
+            p.yaxis.axis_line_width = 0
+            p.yaxis.major_tick_line_width = 0
+            p.yaxis.major_label_text_color = "lightgray"
+            p.yaxis.major_label_text_font = "arial"
+            p.yaxis.major_label_text_font_size = '19px'
+            
+            p.hbar(y='only_theme', right='rating', height=0.7, source=source,
+                   color="#20b2aa", hover_fill_color="crimson", hover_line_color="crimson")
+            p.add_tools(HoverTool(tooltips="@rating rating"))
+
+            url = root_link+"@only_theme_link"
+            taptool = p.select(type=TapTool)
+            taptool.callback = OpenURL(url=url)
+
+            st.bokeh_chart(p, use_container_width=True)
+
+        with row7_3:
+            st.markdown("")
+        
         # fig = px.bar(        
         #         df_theme_cnt,
         #         y = "only_theme",
@@ -559,7 +907,9 @@ def main():
         #     (.1, 50, .1))
         
         # with row5_1:
-        st.markdown("""### Your world in films""")
+        st.markdown("""---""")
+        
+        st.markdown("""## Look at the world through the films you've watched...""")
         df_country_cnt2 = df_country_cnt
         df_country_cnt2['COUNTRY'] = df_country_cnt2['only_country'].astype(str)
         df_country_cnt2 = df_country_cnt2.drop('only_country', axis=1)
