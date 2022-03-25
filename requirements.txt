@@ -61,3 +61,4 @@ tables==3.6.1
 urllib3==1.26.7
 validators==0.18.2
 webencodings==0.5.1
+openpyxl
