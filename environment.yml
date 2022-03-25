@@ -1,0 +1,4 @@
+name: lbxd-app
+channels:
+  - defaults
+prefix: C:\Users\Admin\anaconda3\envs\lbxd-app
