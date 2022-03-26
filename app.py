@@ -45,7 +45,7 @@ film_ratings = []
 
 
 
-MAX_REQUESTS = 200
+MAX_REQUESTS = 100
 # URLS = get_links()
 
 class BaseException(Exception):
