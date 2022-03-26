@@ -165,6 +165,9 @@ def get_meta_dict(ratings_df):
                 first_film_name, first_film_rating,
                 latest_film_name, latest_film_rating,
                 nfilms_most_year, nfilms_most_year_count)
+    ratings_df=ratings_df.drop('rated_date_year', axis=1)
+    ratings_df=ratings_df.drop('rated_date_month', axis=1)
+    ratings_df=ratings_df.drop('rated_date_time_day', axis=1)
     return d
 
 
