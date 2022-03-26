@@ -708,7 +708,7 @@ def main():
         
         df_decade_cnt_filtered['decade_rating'] = df_decade_cnt_filtered[['year_rating', 'decade']].groupby(by=['decade']).mean()['year_rating']
 
-        print(f"df_decade_cnt_filtered {len(df_decade_cnt_filtered)}")
+        # print(f"df_decade_cnt_filtered {len(df_decade_cnt_filtered)}")
 
         for name, group in df_count[(df_count['decade'].isin(df_decade_cnt_filtered.nlargest(3, 'decade_rating')['decade'].values.tolist()))].groupby(by=['decade']):
           df_group = df[['rating', 'lbxd_link']][df['year'].isin(group['year'].values.tolist())].nlargest(5, 'rating').reset_index(drop=True).drop('rating', axis=1)

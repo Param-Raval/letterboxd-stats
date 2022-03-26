@@ -63,7 +63,6 @@ validators==0.18.2
 webencodings==0.5.1
 openpyxl
 bokeh==2.4.1
-textwrap
 cchardet
 requests_async
 sorcery
