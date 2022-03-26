@@ -18,10 +18,19 @@ from requests_futures.sessions import FuturesSession
 import time
 import textwrap
 
+import asyncio
+import requests_async as requests_a
+import platform
+
+from requests_async.exceptions import HTTPError, RequestException, Timeout
+import cchardet
+import lxml
+from datetime import datetime
+from sorcery import dict_of
+
 from bokeh.models import ColumnDataSource, OpenURL, TapTool, HoverTool
 from bokeh.plotting import figure, show
 from bokeh.io import output_notebook
-from bokeh.transform import dodge
 from bokeh.core.properties import value
 from bokeh.models import Title
 
@@ -33,7 +42,155 @@ from bokeh.models import ColumnDataSource, Grid, ImageURL, LinearAxis, Plot, Ran
 
 _domain = "https://letterboxd.com"
 film_ratings = []
-film_cache = pd.read_excel('./film_cache.xlsx')
+
+
+
+MAX_REQUESTS = 200
+# URLS = get_links()
+
+class BaseException(Exception):
+    pass
+
+
+class HTTPRequestFailed(BaseException):
+    pass
+
+
+async def fetch(url, timeout=None):
+    async with requests_a.Session() as session:
+        try:
+            resp = await session.get(url, timeout=timeout)
+            resp.raise_for_status()
+        except HTTPError:
+            raise HTTPRequestFailed(f'Skipped: {resp.url} ({resp.status_code})')
+        except Timeout:
+            raise HTTPRequestFailed(f'Timeout: {url}')
+        except RequestException as e:
+            raise HTTPRequestFailed(e)
+    return resp
+
+async def parse_html(html):
+    film_soup = BeautifulSoup(html, 'lxml')
+    return film_soup
+
+async def run(sem, url):
+    async with sem:
+        start_t = time.time()
+        resp = await fetch(url)
+        # film_soup = await parse_html(resp.content)
+        end_t = time.time()
+        elapsed_t = end_t - start_t
+        r_time = resp.elapsed.total_seconds()
+        
+        return resp
+
+async def get_links_async(user_name):
+    sem = asyncio.Semaphore(MAX_REQUESTS)
+    user_rating_pages = get_links(user_name)
+
+    tasks = [asyncio.create_task(run(sem, url)) for url in tqdm(user_rating_pages)]
+    film_link_pages=[]
+    # idx=0
+    t1=time.time()
+    # for f in asyncio.as_completed(tasks):
+    #     rating_page_response = await f
+        
+    #     film_link_pages=film_link_pages+[ele[-1] for ele in get_ratings_from_futures(rating_page_response)]
+    
+    film_rating_details=[ele for f in asyncio.as_completed(tasks) for ele in get_ratings_from_futures(await f)]
+
+    film_link_pages=[ele[-1] for ele in film_rating_details]
+
+    print(f"{len(film_link_pages)} in {time.time()-t1}")
+
+    return film_link_pages, film_rating_details
+
+async def get_film_main(URLS, meta_data_dict):
+    sem = asyncio.Semaphore(MAX_REQUESTS)
+    tasks = [asyncio.create_task(run(sem, url)) for url in tqdm(URLS)]
+    result_pages=[]
+    
+    t1=time.time()
+
+    section_placeholder = st.empty()
+    
+    result_pages=[get_film_data(await f, idx, section_placeholder, meta_data_dict) 
+                    for f, idx in zip(asyncio.as_completed(tasks), range(0, len(URLS)))]
+    
+    section_placeholder.empty()
+
+    print(f"{len(result_pages)} in {time.time()-t1}")
+
+    return result_pages
+
+
+def get_meta_dict(ratings_df):
+    this_month_name = datetime.strptime(f"{datetime.today().month}", "%m").strftime('%B')
+    this_month = f"{this_month_name},{datetime.today().year}"
+    this_year = f"{datetime.today().year}"
+    last_year = f"{int(this_year)-1}"
+
+    ratings_df['rated_date_year']=ratings_df['rated_date'].map(lambda x: f"{x.year}")
+    ratings_df['rated_date_month']=ratings_df['rated_date'].map(lambda x: datetime.strptime(f"{x.month}", "%m").strftime('%B'))
+    ratings_df['rated_date_time_day']=ratings_df['rated_date'].map(lambda x: "Morning" if x.hour<16 else("Evening" if x.hour >= 16 and x.hour<20 else "Night"))
+
+    nfilms_month_wise = ratings_df['rating'].groupby(ratings_df['rated_date'].map(lambda x: str(datetime.strptime(f"{x.month}", "%m").strftime('%B'))+f",{x.year}")).count().reset_index()
+    nfilms_this_month = nfilms_month_wise[nfilms_month_wise['rated_date']==this_month]['rating'].values.tolist()[0]
+
+    nfilms_year_wise = ratings_df['rating'].groupby(ratings_df['rated_date'].map(lambda x: f"{x.year}")).count().reset_index()
+    nfilms_this_year = nfilms_year_wise[nfilms_year_wise['rated_date']==this_year]['rating'].values.tolist()[0]
+    nfilms_most_year, nfilms_most_year_count = nfilms_year_wise.sort_values(by=['rating']).values.tolist()[-1]
+
+    nfilms_last_year_most_month, nfilms_last_year_most_month_count = ratings_df['film_name'][ratings_df['rated_date_year']==last_year].groupby(ratings_df['rated_date_month']).count().reset_index().sort_values(by=['film_name']).values.tolist()[-1]
+    nfilms_last_year_most_rated_month, nfilms_last_year_most_rated_month_val = ratings_df['rating'][ratings_df['rated_date_year']==last_year].groupby(ratings_df['rated_date_month']).mean().reset_index().sort_values(by=['rating']).values.tolist()[-1]
+    nfilms_last_year_most_rated_month_val=round(nfilms_last_year_most_rated_month_val,1)
+
+    nfilms_time_of_day = ratings_df['film_name'].groupby(ratings_df['rated_date_time_day']).count().reset_index().sort_values(by=['film_name'])['rated_date_time_day'].values[-1]
+
+    first_film_name, first_film_rating = ratings_df.sort_values(by=['rated_date'])[['film_name', 'rating']].values.tolist()[0]
+    latest_film_name, latest_film_rating = ratings_df.sort_values(by=['rated_date'])[['film_name', 'rating']].values.tolist()[-1]
+
+    d = dict_of(nfilms_this_month, nfilms_this_year, nfilms_last_year_most_month,
+                nfilms_last_year_most_month_count,
+                nfilms_last_year_most_rated_month,
+                nfilms_last_year_most_rated_month_val,
+                nfilms_time_of_day,
+                first_film_name, first_film_rating,
+                latest_film_name, latest_film_rating,
+                nfilms_most_year, nfilms_most_year_count)
+    return d
+
+
+def get_links(user_name):
+    # user_name="arjunrajput"
+    rlink = f"https://letterboxd.com/{user_name}/films/ratings/"
+    ratings_page = requests.get(rlink)
+
+    if ratings_page.status_code != 200:
+      print("PAGE NOT FOUND")
+      return 0
+
+    soup = BeautifulSoup(ratings_page.content, 'lxml')
+    try:
+      num_pages=int(soup.find('div', class_="pagination").find_all('a')[-1].contents[0])
+      url_list = [rlink] + [rlink+f"page/{idx}/" for idx in range(2,num_pages+1)]
+    except:
+        url_list = [rlink]
+    return url_list
+
+    # with FuturesSession() as session:
+    #     t1=time.time()
+    #     futures = [session.get(ele) for ele in tqdm(url_list)]
+    #     ratings = []
+    #     for future in as_completed(futures):
+    #         temp = get_ratings_from_futures(future.result())
+    #         if temp is None:
+    #             return 0
+    #         ratings = ratings + temp
+
+    # print(len(ratings), time.time()-t1)
+    # return [ele[-1] for ele in ratings]    
+
 
 def get_poster_link(movie_links):
     with FuturesSession() as session:
@@ -45,7 +202,7 @@ def get_poster_link(movie_links):
                 print("PAGE NOT FOUND")
                 poster_links[temp.url]=None
                 continue
-            soup = BeautifulSoup(temp.content, 'html.parser')
+            soup = BeautifulSoup(temp.content, 'lxml')
             panel = soup.find('div', class_="film-poster").find('img')
             poster_links[temp.url]=panel['src'].split("?")[0]
     return poster_links
@@ -71,7 +228,7 @@ def get_image_from_url(image_url, film_row):
   # plot.image_url(url="url", x="x1", y="y1", w="w1", h="h1", anchor="center", source=source)
   image1 = ImageURL(url="url", x="x1", y="y1", w="w1", h="h1", anchor="center")
   plot.add_glyph(source, image1)
-  subtitle_string = f"{film_row['film_name']}, {film_row['year']} || {inverse_transform_ratings(str(film_row['rating']))}"
+  subtitle_string = f"{film_row['film_name']}, {int(film_row['year'])} || {inverse_transform_ratings(str(film_row['rating']))}"
   wrapper = textwrap.TextWrapper(width=30)
   subtitle_string = wrapper.fill(text=subtitle_string)
   subtitle_string = subtitle_string.split('||')[0].strip('\n') + '\n' + subtitle_string.split('||')[1].replace('\n', '')
@@ -81,13 +238,30 @@ def get_image_from_url(image_url, film_row):
 
   return plot
 
-def get_film_data(filmget):
+def get_film_data(filmget, str_idx, section_placeholder, meta_data_dict):
   # film_page="https://letterboxd.com/film/phantom-thread/"
   # filmget = requests.get(film_page)
   # session = requests.Session()
   # filmget = session.get(film_page)
+  str_0 = "" if meta_data_dict['len_urls'] < 500 else ". This might take a while..."
+  dyk_str = "## *Did you know?*\n"
+  idx_msgs = {0:f"## Wow! you have watched {meta_data_dict['len_ratings']} films"+str_0,
+            500: dyk_str+f"## You watched {meta_data_dict['nfilms_this_month']} films this month and {meta_data_dict['nfilms_this_year']} this year",
+            1000: dyk_str+f"## Last year, you rated the most films in {meta_data_dict['nfilms_last_year_most_month']} ({meta_data_dict['nfilms_last_year_most_month_count']}) \
+                    and rated films the highest in {meta_data_dict['nfilms_last_year_most_rated_month']} ({meta_data_dict['nfilms_last_year_most_rated_month_val']}).",
+            1500: dyk_str+f"## You usually rate films on Letterboxd in the {meta_data_dict['nfilms_time_of_day']}.",
+            2000: dyk_str+f"## You rated the most films ({meta_data_dict['nfilms_most_year_count']} films) in {meta_data_dict['nfilms_most_year']}.",
+            2500: dyk_str+f"## {meta_data_dict['first_film_name']} is one of the first films you rated on Letterboxd! You gave it {meta_data_dict['first_film_rating']}/5",
+            3500: dyk_str+f"## Do you feel like reassessing your recent {meta_data_dict['latest_film_rating']} rating for {meta_data_dict['latest_film_name']}?"}
 
-  film_soup = BeautifulSoup(filmget.content, 'html.parser')
+  if str_idx in idx_msgs.keys():
+    section_placeholder.empty()
+    section_placeholder.markdown(f"{idx_msgs[str_idx]}")
+  elif str_idx-3500 in idx_msgs.keys():
+    section_placeholder.empty()
+    section_placeholder.markdown(f"{idx_msgs[str_idx-3500]}")
+
+  film_soup = BeautifulSoup(filmget.content, 'lxml')
   
   #average rating
   try:
@@ -214,37 +388,49 @@ def inverse_transform_ratings(some_number):
         return -1
 
 
+
 def get_ratings_from_futures(ratings_page):
   # check to see page was downloaded correctly
   if ratings_page.status_code != 200:
       print("PAGE NOT FOUND")
       return None
 
-  soup = BeautifulSoup(ratings_page.content, 'html.parser')
-  # browser.get(following_url)
+  # t1=time.time()
+  soup = BeautifulSoup(ratings_page.content, 'lxml')
+  # print(f"Parsing time {time.time()-t1}")
 
   # grab the main film grid
+  # t1=time.time()
   table = soup.find('ul', class_='poster-list')
+  # print(f"table time {time.time()-t1}")
   if table is None:
       return None
 
+  # t1=time.time()
   films = table.find_all('li')
+  # print(f"film find_all time {time.time()-t1}")
+  
   film_ratings = list()
 
   # iterate through friends
+  # t1=time.time()
   for film in films:
-      panel = film.find('div').find('img')
-      film_name = panel['alt']
       stars = transform_ratings(film.find('p', class_='poster-viewingdata').get_text().strip())
       film_link = _domain + film.find('div').get('data-target-link')
+      rated_date = film.find('p', class_='poster-viewingdata').find('time')['datetime']
+      rated_date = datetime.strptime(rated_date[:-1], "%Y-%m-%dT%H:%M:%S")
       if stars == -1:
           continue
-      film_ratings.append((film_name, stars, film_link))
-
+      film_ratings.append((film.find('div').find('img')['alt'], stars, rated_date, film_link))
+  
+  # print(f"film iterations time {time.time()-t1}")
+  
   return film_ratings
 
 
 def get_film_df(user_name):
+
+    film_cache = pd.read_excel('./film_cache.xlsx')
     
     rlink = f"https://letterboxd.com/{user_name}/films/ratings/"
     ratings_page = requests.get(rlink)
@@ -253,46 +439,60 @@ def get_film_df(user_name):
         print("PAGE NOT FOUND")
         return 0
 
-    soup = BeautifulSoup(ratings_page.content, 'html.parser')
+    soup = BeautifulSoup(ratings_page.content, 'lxml')
     try:
         num_pages=int(soup.find('div', class_="pagination").find_all('a')[-1].contents[0])
         url_list = [rlink] + [rlink+f"page/{idx}/" for idx in range(2,num_pages+1)]
     except:
         url_list = [rlink]
 
-    with FuturesSession() as session:
-      t1=time.time()
-      futures = [session.get(ele) for ele in tqdm(url_list)]
-      ratings = []
-      for future in as_completed(futures):
-          temp = get_ratings_from_futures(future.result())
-          if temp is None:
-            return 0
-          ratings = ratings + temp
+    if 'Windows' in platform.system():
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    films_url_list, ratings = asyncio.run(get_links_async(user_name))
+    
 
-      print(len(ratings), time.time()-t1)
+    # with FuturesSession() as session:
+    #   t1=time.time()
+    #   futures = [session.get(ele) for ele in tqdm(url_list)]
+    #   ratings = []
+    #   for future in as_completed(futures):
+    #       temp = get_ratings_from_futures(future.result())
+    #       if temp is None:
+    #         return 0
+    #       ratings = ratings + temp
+
+    #   print(len(ratings), time.time()-t1)
 
     st.markdown(f"##### 2. Fetched {len(ratings)} ratings from {user_name}! Fetching movie data...")
             
-    films_url_list = [ele[-1] for ele in ratings]
+    # films_url_list = [ele[-1] for ele in ratings]
     films_url_list_new = [film_url for film_url in films_url_list if film_url not in film_cache['lbxd_link'].values.tolist()]
     print(len(films_url_list_new))
 
     final_film_data=[]
     batch_size=30
 
-    with FuturesSession() as session:
-      t1=time.time()
-      futures = [session.get(ele) for ele in tqdm(films_url_list_new)]
-      ffd = [get_film_data(future.result()) for future in as_completed(futures)]
+    ratings_df = pd.DataFrame(ratings, columns=['film_name', 'rating', 'rated_date', 'lbxd_link'])
+    #compute prelimnary rating based stats
+    meta_data_dict=get_meta_dict(ratings_df)
+    meta_data_dict['len_urls'] = len(films_url_list_new)
+    meta_data_dict['len_ratings'] = len(films_url_list)
 
-      print(len(ffd), time.time()-t1)
+    
+    ffd = asyncio.run(get_film_main(films_url_list_new, meta_data_dict))
+
+    # with FuturesSession() as session:
+    #   t1=time.time()
+    #   futures = [session.get(ele) for ele in tqdm(films_url_list_new)]
+    #   ffd = [get_film_data(future.result()) for future in as_completed(futures)]
+
+    #   print(len(ffd), time.time()-t1)
 
     st.markdown(f"##### 3. Fetched {len(ratings)} movies!")
     print(f"Fetched {len(ffd)} movies! {len(films_url_list)-len(films_url_list_new)} found in cache.")
 
     #all ratings of the user
-    ratings_df = pd.DataFrame(ratings, columns=['film_name', 'rating', 'lbxd_link'])
+    ratings_df=ratings_df.drop('rated_date', axis=1)
 
     #only newly fetched film data
     column_list = ['lbxd_link', 'year', 'director', 'avg_rating', 'countries', 'langs', 'genres', 'themes', 'top_cast']
@@ -307,21 +507,24 @@ def get_film_df(user_name):
     new_film_cache = pd.concat([df_new.drop('rating', axis=1), film_cache], ignore_index=True)
     new_film_cache.to_excel('./film_cache.xlsx', index=False)
     new_film_cache=None
+    film_df=None
 
     #film cache of user's films
     int_film_cache = film_cache[film_cache['lbxd_link'].isin([film_url for film_url in films_url_list if film_url in film_cache['lbxd_link'].values.tolist()])]
 
+    film_cache = None
+
     #add user's ratings to existing film cache
     ratings_df_film_cache = ratings_df.join(int_film_cache.drop('film_name', axis=1).set_index('lbxd_link'), on='lbxd_link', how='inner')
-    
+    int_film_cache=None
+
     ratings_df_film_cache['genres'] = ratings_df_film_cache['genres'].apply(lambda x: ast.literal_eval(x) if x!="nan" and x is not np.nan else np.nan)
     ratings_df_film_cache['themes'] = ratings_df_film_cache['themes'].apply(lambda x: ast.literal_eval(x) if x!="nan" and x is not np.nan else np.nan)
     ratings_df_film_cache['langs'] = ratings_df_film_cache['langs'].apply(lambda x: ast.literal_eval(x) if x!="nan" and x is not np.nan else np.nan)
     ratings_df_film_cache['countries'] = ratings_df_film_cache['countries'].apply(lambda x: ast.literal_eval(x) if x!="nan" and x is not np.nan else np.nan)
     
     #add new ratings+film data to existing ratings+film cache
-    final_df_to_use = pd.concat([df_new, ratings_df_film_cache], ignore_index=True)
-    return final_df_to_use
+    return pd.concat([df_new, ratings_df_film_cache], ignore_index=True)
 
 
 def make_horizontal_bar_chart(data, x, y, color=None, text=None, ccs=None):
@@ -420,13 +623,16 @@ def main():
 
         st.markdown(f"## Analyzing {user_input}'s profile")
         st.markdown("""---""")
-        
 
         st.subheader("*Years* in film...explored by you")
         st.markdown(f"#### Number of films you watched across release years")
         
+        df=df[~(df['year']==np.nan) & (df['year'].notna())]
+        df=df[~(df['film_name']==np.nan) & (df['film_name'].notna())]
+        
         df_count = df[['film_name', 'year']].groupby(by=['year']).count()
         df_count['year'] = df_count.index
+        
         df_count['decade'] =  df_count.apply(lambda row: row.year - row.year%10, axis=1).astype(int)
         df_count['year_rating'] = df[['rating', 'year']].groupby(by=['year']).mean()['rating']
 
@@ -441,7 +647,7 @@ def main():
                         y = "film_name",
                         color = "year",
                         ccs="sunset")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True,config = {'displayModeBar': False})
 
         st.markdown(f"#### Average ratings you gave to each year")
         
@@ -450,7 +656,7 @@ def main():
                         y = "year_rating",
                         color = "year",
                         ccs="viridis")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
 
 
         st.subheader("Decades in film!")
@@ -461,7 +667,7 @@ def main():
                         y = "film_name",
                         color = "decade",
                         ccs="emrld")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
 
 
         st.markdown(f"#### Average ratings you gave to each decade of film...")
@@ -471,7 +677,7 @@ def main():
                         y = "decade_rating",
                         color = "decade",
                         ccs="agsunset")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
 
 
         st.markdown(f"### Your favourite decades")
@@ -532,6 +738,7 @@ def main():
                             # st.markdown(f"""[{row['film_name']}]({row['lbxd_link']}) ({row['year']}) {inverse_transform_ratings(str(row['rating']))}""")
                             # st.markdown(f"""{inverse_transform_ratings(str(row['rating']))}""")
                         
+        df_count=None
         st.markdown(f'\n')
         st.markdown("""---""")
         st.markdown('## Find yourself in the films you watch')
@@ -564,7 +771,7 @@ def main():
                                       x = "index",
                                       ccs="lightseagreen")
             
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
 
             st.markdown(f'#### that you *loved* the most...')
 
@@ -598,7 +805,7 @@ def main():
                                       x = "rating",
                                       ccs="lightseagreen")
             
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
             df_genre_rating=None
 
         with row3_2:
@@ -624,7 +831,7 @@ def main():
                                       x = "index",
                                       ccs="crimson")
 
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
 
 
             st.markdown(f'<p style="background-color:#101010;color:#101010;font-size:24px;">--</p>', unsafe_allow_html=True)
@@ -659,7 +866,7 @@ def main():
                                       x = "rating",
                                       ccs="crimson")
             
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
             df_lang_rating=None
 
         with row3_3:
@@ -691,7 +898,7 @@ def main():
                                       x = "index",
                                       ccs="green")
             
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
 
 
             st.markdown(f'<p style="background-color:#101010;color:#101010;font-size:24px;">--</p>', unsafe_allow_html=True)
@@ -723,7 +930,7 @@ def main():
                                       x = "rating",
                                       ccs="green")
             
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
             df_country_rating=None
 
 
@@ -772,7 +979,7 @@ def main():
         #                               x = "index",
         #                               text='index',
         #                               ccs="lightseagreen")
-        # st.plotly_chart(fig, use_container_width=True)
+        # st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
 
         v = df_theme['theme_and_link'].value_counts()
         df_theme=df_theme[df_theme['theme_and_link'].isin(v[v>5].index.values.tolist())]
@@ -788,6 +995,8 @@ def main():
         df_theme_rating[['only_theme','only_theme_link']] = [val.split('||') for val in df_theme_rating['theme_and_link'].values.tolist()]
         df_theme_rating=df_theme_rating.drop('theme_and_link', axis=1)
         
+        df_theme=None
+
         st.markdown(f"""#### Type of films you **watched** the most...""")
         
         row6_space1, row6_1, row6_space2, row6_2, row6_space3, row6_3, row6_space4 = st.columns(
@@ -900,7 +1109,7 @@ def main():
         # fig.update_layout(barmode='stack', yaxis={'categoryorder':'total ascending'})
         # fig.update(layout_coloraxis_showscale=False)
         # fig.update_layout(yaxis = dict(ticks="outside", tickcolor="#101010", ticklen=10, tickfont = dict(size=20)))
-        # st.plotly_chart(fig, use_container_width=True)
+        # st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
     
         #world map
         # row5_space1, row5_1, row5_space2 = st.columns(
@@ -942,7 +1151,9 @@ def main():
         fig.update_traces(showlegend=False)
         fig.update(layout_showlegend=False)
         fig.update_traces(showscale=False)
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, config = {'displayModeBar': False})
+
+        df_country_cnt2=None
         #top nanogenres
         # st.subheader('Top Nanogenres')
 
