@@ -135,14 +135,21 @@ def get_meta_dict(ratings_df):
     ratings_df['rated_date_time_day']=ratings_df['rated_date'].map(lambda x: "Morning" if x.hour<16 else("Evening" if x.hour >= 16 and x.hour<20 else "Night"))
 
     nfilms_month_wise = ratings_df['rating'].groupby(ratings_df['rated_date'].map(lambda x: str(datetime.strptime(f"{x.month}", "%m").strftime('%B'))+f",{x.year}")).count().reset_index()
-    nfilms_this_month = nfilms_month_wise[nfilms_month_wise['rated_date']==this_month]['rating'].values.tolist()[0]
+    nfilms_this_month = nfilms_month_wise[nfilms_month_wise['rated_date']==this_month]['rating'].values.tolist()
+    nfilms_this_month = nfilms_this_month[0] if len(nfilms_this_month)>0 else 0
 
     nfilms_year_wise = ratings_df['rating'].groupby(ratings_df['rated_date'].map(lambda x: f"{x.year}")).count().reset_index()
-    nfilms_this_year = nfilms_year_wise[nfilms_year_wise['rated_date']==this_year]['rating'].values.tolist()[0]
+    nfilms_this_year = nfilms_year_wise[nfilms_year_wise['rated_date']==this_year]['rating'].values.tolist()
+    nfilms_this_year = nfilms_this_year[0] if len(nfilms_this_year)>0 else 0
+
     nfilms_most_year, nfilms_most_year_count = nfilms_year_wise.sort_values(by=['rating']).values.tolist()[-1]
 
-    nfilms_last_year_most_month, nfilms_last_year_most_month_count = ratings_df['film_name'][ratings_df['rated_date_year']==last_year].groupby(ratings_df['rated_date_month']).count().reset_index().sort_values(by=['film_name']).values.tolist()[-1]
-    nfilms_last_year_most_rated_month, nfilms_last_year_most_rated_month_val = ratings_df['rating'][ratings_df['rated_date_year']==last_year].groupby(ratings_df['rated_date_month']).mean().reset_index().sort_values(by=['rating']).values.tolist()[-1]
+    last_year_month_stats = ratings_df['film_name'][ratings_df['rated_date_year']==last_year].groupby(ratings_df['rated_date_month']).count().reset_index().sort_values(by=['film_name']).values.tolist()
+    
+    nfilms_last_year_most_month, nfilms_last_year_most_month_count = last_year_month_stats[-1] if len(last_year_month_stats)>0 else "None", 0
+
+    last_year_month_stats = ratings_df['rating'][ratings_df['rated_date_year']==last_year].groupby(ratings_df['rated_date_month']).mean().reset_index().sort_values(by=['rating']).values.tolist()
+    nfilms_last_year_most_rated_month, nfilms_last_year_most_rated_month_val = last_year_month_stats if len(last_year_month_stats)>0 else "None", 0
     nfilms_last_year_most_rated_month_val=round(nfilms_last_year_most_rated_month_val,1)
 
     nfilms_time_of_day = ratings_df['film_name'].groupby(ratings_df['rated_date_time_day']).count().reset_index().sort_values(by=['film_name'])['rated_date_time_day'].values[-1]
