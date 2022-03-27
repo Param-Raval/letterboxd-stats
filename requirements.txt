@@ -57,10 +57,10 @@ smmap==5.0.0
 Sphinx==4.2.0
 statsmodels
 streamlit==1.7.0
-tables==3.6.1
-urllib3==1.26.7
-validators==0.18.2
-webencodings==0.5.1
+tables
+urllib3
+validators
+webencodings
 openpyxl
 bokeh==2.4.1
 cchardet
