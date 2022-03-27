@@ -531,7 +531,7 @@ def get_film_df(user_name):
     ratings_df_new = ratings_df[ratings_df['lbxd_link'].isin(films_url_list_new)]
     df_new = ratings_df_new.join(film_df.set_index('lbxd_link'), on='lbxd_link')
     new_film_cache = pd.concat([df_new.drop('rating', axis=1), film_cache], ignore_index=True)
-    # new_film_cache.to_excel('./film_cache.xlsx', index=False)
+    new_film_cache.to_excel('./film_cache.xlsx', index=False)
     new_film_cache=None
     film_df=None
 
