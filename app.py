@@ -456,6 +456,7 @@ def get_film_df(user_name):
     except:
         url_list = [rlink]
 
+    print(f"Running on {platform.system()}.")
     if 'Windows' in platform.system():
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     films_url_list, ratings = asyncio.run(get_links_async(user_name))
@@ -477,7 +478,7 @@ def get_film_df(user_name):
             
     # films_url_list = [ele[-1] for ele in ratings]
     films_url_list_new = [film_url for film_url in films_url_list if film_url not in film_cache['lbxd_link'].values.tolist()]
-    print(len(films_url_list_new))
+    # print(len(films_url_list_new))
 
     final_film_data=[]
     batch_size=30
