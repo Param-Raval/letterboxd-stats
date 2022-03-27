@@ -7,5 +7,4 @@ textColor="#b9babd"
 [server]
 runOnSave=true
 headless=true
-port=$PORT
 enableCORS=false
