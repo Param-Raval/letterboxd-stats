@@ -21,6 +21,8 @@ import textwrap
 import asyncio
 import requests_async as requests_a
 import platform
+# from memory_profiler import profile
+from sys import getsizeof
 
 from requests_async.exceptions import HTTPError, RequestException, Timeout
 import cchardet
@@ -114,7 +116,7 @@ async def get_film_main(URLS, meta_data_dict):
 
     section_placeholder = st.empty()
     
-    result_pages=[get_film_data(await f, idx, section_placeholder, meta_data_dict) 
+    result_pages=[get_film_data(await f, idx+meta_data_dict['current_batch_idx'], section_placeholder, meta_data_dict) 
                     for f, idx in zip(asyncio.as_completed(tasks), range(0, len(URLS)))]
     
     section_placeholder.empty()
@@ -256,13 +258,13 @@ def get_film_data(filmget, str_idx, section_placeholder, meta_data_dict):
   str_0 = "" if meta_data_dict['len_urls'] < 500 else ". This might take a while. Till then look at some stats that we found about your profile..."
   dyk_str = "## *Did you know?*\n"
   idx_msgs = {0:f"## Wow! you have watched {meta_data_dict['len_ratings']} films"+str_0,
-            500: dyk_str+f"## You watched {meta_data_dict['nfilms_this_month']} films this month and {meta_data_dict['nfilms_this_year']} this year",
-            1000: dyk_str+f"## Last year, you rated the most films in {meta_data_dict['nfilms_last_year_most_month']} ({meta_data_dict['nfilms_last_year_most_month_count']}) \
+            250: dyk_str+f"## You watched {meta_data_dict['nfilms_this_month']} films this month and {meta_data_dict['nfilms_this_year']} this year",
+            900: dyk_str+f"## Last year, you rated the most films in {meta_data_dict['nfilms_last_year_most_month']} ({meta_data_dict['nfilms_last_year_most_month_count']}) \
                     and rated films the highest in {meta_data_dict['nfilms_last_year_most_rated_month']} ({meta_data_dict['nfilms_last_year_most_rated_month_val']}).",
             1500: dyk_str+f"## You usually rate films on Letterboxd in the {meta_data_dict['nfilms_time_of_day']}.",
             2000: dyk_str+f"## You rated the most films ({meta_data_dict['nfilms_most_year_count']} films) in {meta_data_dict['nfilms_most_year']}.",
             2500: dyk_str+f"## {meta_data_dict['first_film_name']} is one of the first films you rated on Letterboxd! You gave it {meta_data_dict['first_film_rating']}/5",
-            3500: dyk_str+f"## Do you feel like reassessing your recent {meta_data_dict['latest_film_rating']} rating for {meta_data_dict['latest_film_name']}?"}
+            3500: f"## Do you feel like reassessing your recent {meta_data_dict['latest_film_rating']} rating for {meta_data_dict['latest_film_name']}?"}
 
   if str_idx in idx_msgs.keys():
     section_placeholder.empty()
@@ -319,13 +321,13 @@ def get_film_data(filmget, str_idx, section_placeholder, meta_data_dict):
     if len(langs)==0:
       langs=np.nan
     
-  try:
-    cast = [ line.contents[0] for line in film_soup.find('div', attrs={'id':'tab-cast'}).find_all('a')]
-    # remove all the 'Show All...' tags if they are present
-    cast = [str(i) for i in cast if i != 'Show All…']
-    cast = cast[:10]
-  except:
-    cast = np.nan
+  # try:
+  #   cast = [ line.contents[0] for line in film_soup.find('div', attrs={'id':'tab-cast'}).find_all('a')]
+  #   # remove all the 'Show All...' tags if they are present
+  #   cast = [str(i) for i in cast if i != 'Show All…']
+  #   cast = cast[:10]
+  # except:
+  #   cast = np.nan
 
   #GENRES THEMES
   no_genre = False
@@ -353,7 +355,7 @@ def get_film_data(filmget, str_idx, section_placeholder, meta_data_dict):
     if len(th_list)==0:
       th_list=np.nan
   
-  return [filmget.url, year, director, avg_rating, countries, langs, genres, th_list, cast]    
+  return [filmget.url, year, director, avg_rating, countries, langs, genres, th_list]    
 
 
 def transform_ratings(some_str):
@@ -474,7 +476,7 @@ def get_film_df(user_name):
 
     #   print(len(ratings), time.time()-t1)
 
-    st.markdown(f"##### 2. Fetched {len(ratings)} ratings from {user_name}! Fetching movie data...")
+    print(f"##### 2. Fetched {len(ratings)} ratings from {user_name}! Fetching movie data...")
             
     # films_url_list = [ele[-1] for ele in ratings]
     films_url_list_new = [film_url for film_url in films_url_list if film_url not in film_cache['lbxd_link'].values.tolist()]
@@ -490,7 +492,15 @@ def get_film_df(user_name):
     meta_data_dict['len_ratings'] = len(films_url_list)
 
     
-    ffd = asyncio.run(get_film_main(films_url_list_new, meta_data_dict))
+    ffd=list()
+    fetch_batch_size=1000
+    for batch_idx in range(0, len(films_url_list_new), fetch_batch_size):
+        films_url_batch=films_url_list_new[batch_idx:batch_idx+fetch_batch_size]
+        meta_data_dict['current_batch_idx']=batch_idx
+        ffd=ffd+asyncio.run(get_film_main(films_url_batch, meta_data_dict))
+    
+    print(f"ffd size {getsizeof(ffd), len(ffd)}")
+    # ffd = asyncio.run(get_film_main(films_url_list_new, meta_data_dict))
 
     # with FuturesSession() as session:
     #   t1=time.time()
@@ -511,7 +521,7 @@ def get_film_df(user_name):
         ratings_df=ratings_df.drop(drop_columns, axis=1)
 
     #only newly fetched film data
-    column_list = ['lbxd_link', 'year', 'director', 'avg_rating', 'countries', 'langs', 'genres', 'themes', 'top_cast']
+    column_list = ['lbxd_link', 'year', 'director', 'avg_rating', 'countries', 'langs', 'genres', 'themes']
     film_df = pd.DataFrame(ffd, columns=column_list)
     
     #ratings and film data of newly fetched movies
@@ -521,7 +531,7 @@ def get_film_df(user_name):
     ratings_df_new = ratings_df[ratings_df['lbxd_link'].isin(films_url_list_new)]
     df_new = ratings_df_new.join(film_df.set_index('lbxd_link'), on='lbxd_link')
     new_film_cache = pd.concat([df_new.drop('rating', axis=1), film_cache], ignore_index=True)
-    new_film_cache.to_excel('./film_cache.xlsx', index=False)
+    # new_film_cache.to_excel('./film_cache.xlsx', index=False)
     new_film_cache=None
     film_df=None
 
@@ -631,7 +641,7 @@ def main():
             df = pd.read_excel('./letterboxd_film_data1.xlsx')
         else:
             with st.spinner(text="Good things come to those who wait..."):
-                st.markdown(f"##### 1. Fetching profile of {user_input}")
+                st.markdown(f"##### 1. Fetching {user_input}'s profile")
                 df = get_film_df(user_input)
                 if isinstance(df, int) and df==0:
                     st.markdown(f"### Username {user_input} not found!")
@@ -1132,6 +1142,45 @@ def main():
         #     (.1, 50, .1))
         
         # with row5_1:
+
+        #directors
+        st.subheader("Some of your favourite directors and how you rated their films")
+        director_df = df[['director', 'avg_rating']].groupby(by='director').mean().reset_index()
+
+        v = df['director'].value_counts()
+        director_df_filtered=df[(df['director'].isin(v[v>3].index.values.tolist()))]
+        director_df_rate = director_df_filtered[['director', 'avg_rating']].groupby(by='director').mean().reset_index().sort_values(by=['avg_rating'], ascending=False)
+        director_df_count = director_df_filtered[['director', 'avg_rating']].groupby(by='director').count().sort_values(by=['avg_rating'], ascending=False).reset_index().rename(columns={'avg_rating':'count'})
+        director_df=director_df_rate[['director', 'avg_rating']].merge(director_df_count[['director', 'count']], on='director', how='inner').sort_values(by=['avg_rating'], ascending=False).nlargest(15, 'count')
+        director_df['avg_rating']=director_df['avg_rating'].map(lambda x: round(x,2))
+
+        fig = go.Figure(data=[go.Scatter(
+            x=director_df['avg_rating'].values.tolist(),
+            y=director_df['count'].values.tolist(),
+            text=director_df['count'].values.tolist(),
+            customdata=director_df['director'].values.tolist(),
+            mode='markers+text',
+            hovertemplate =
+                '<b>%{customdata}</b><br>'+
+                '%{x}<br>'+
+                '%{y} films<br><extra></extra>',
+            marker=dict(
+                size=np.multiply(director_df['count'].values, 5).tolist(),
+                color=list(np.arange(100, 100+(16-1)*15, 15)),
+                showscale=False,
+                line=dict(width=0)
+                ),
+            textfont=dict(color="lightgray")
+        )])
+        fig.update(layout_coloraxis_showscale=False)
+        fig.update_traces(showlegend=False)
+        fig.update_xaxes(visible=False)
+        fig.update_yaxes(visible=False)
+        fig.layout.plot_bgcolor="#101010"
+        fig.update(layout_showlegend=False)
+
+        st.plotly_chart(fig, use_container_width=True)
+
         st.markdown("""---""")
         
         st.markdown("""## Look at the world through the films you've watched...""")
