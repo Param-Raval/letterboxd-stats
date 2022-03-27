@@ -146,10 +146,10 @@ def get_meta_dict(ratings_data):
 
     last_year_month_stats = ratings_data['film_name'][ratings_data['rated_date_year']==last_year].groupby(ratings_data['rated_date_month']).count().reset_index().sort_values(by=['film_name']).values.tolist()
     
-    nfilms_last_year_most_month, nfilms_last_year_most_month_count = last_year_month_stats[-1] if len(last_year_month_stats)>0 else "None", 0
+    nfilms_last_year_most_month, nfilms_last_year_most_month_count = last_year_month_stats[-1] if len(last_year_month_stats)>0 else ("None", 0)
 
     last_year_month_stats = ratings_data['rating'][ratings_data['rated_date_year']==last_year].groupby(ratings_data['rated_date_month']).mean().reset_index().sort_values(by=['rating']).values.tolist()
-    nfilms_last_year_most_rated_month, nfilms_last_year_most_rated_month_val = last_year_month_stats if len(last_year_month_stats)>0 else "None", 0
+    nfilms_last_year_most_rated_month, nfilms_last_year_most_rated_month_val = last_year_month_stats[-1] if len(last_year_month_stats)>0 else ("None", 0)
     nfilms_last_year_most_rated_month_val=round(nfilms_last_year_most_rated_month_val,1)
 
     nfilms_time_of_day = ratings_data['film_name'].groupby(ratings_data['rated_date_time_day']).count().reset_index().sort_values(by=['film_name'])['rated_date_time_day'].values[-1]
@@ -253,7 +253,7 @@ def get_film_data(filmget, str_idx, section_placeholder, meta_data_dict):
   # filmget = requests.get(film_page)
   # session = requests.Session()
   # filmget = session.get(film_page)
-  str_0 = "" if meta_data_dict['len_urls'] < 500 else ". This might take a while..."
+  str_0 = "" if meta_data_dict['len_urls'] < 500 else ". This might take a while. Till then look at some stats that we found about your profile..."
   dyk_str = "## *Did you know?*\n"
   idx_msgs = {0:f"## Wow! you have watched {meta_data_dict['len_ratings']} films"+str_0,
             500: dyk_str+f"## You watched {meta_data_dict['nfilms_this_month']} films this month and {meta_data_dict['nfilms_this_year']} this year",
@@ -499,7 +499,7 @@ def get_film_df(user_name):
 
     #   print(len(ffd), time.time()-t1)
 
-    st.markdown(f"##### 3. Fetched {len(ratings)} movies!")
+    # st.markdown(f"##### 3. Fetched {len(ratings)} movies!")
     print(f"Fetched {len(ffd)} movies! {len(films_url_list)-len(films_url_list_new)} found in cache.")
 
     #all ratings of the user
