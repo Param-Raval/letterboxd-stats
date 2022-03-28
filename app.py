@@ -1196,6 +1196,7 @@ def main():
                 showscale=False,
                 line=dict(width=0)
                 ),
+            texttemplate="<b>%{text}</b>",
             textfont=dict(color="lightgray")
         )])
         fig.update(layout_coloraxis_showscale=False)
@@ -1270,6 +1271,16 @@ def main():
         st.plotly_chart(fig, config = {'displayModeBar': False})
 
         df_country_cnt=None
+
+        st.markdown("""---""")
+        # row8_1, row8_2, row8_space3= st.columns((8,.5,10))
+        
+        st.markdown(
+            "#### <h3><b> Happy watching & follow me Letterboxd at <a href=https://letterboxd.com/param_raval/ style=\"color: #b9babd; text-decoration: underline;\">param_raval</a>!</b></h5>", 
+            unsafe_allow_html=True)
+
+        # row8_1.markdown("### Happy watching & follow me Letterboxd at")
+        # row8_2.button("param_raval", on_click=open_link, args=(("https://letterboxd.com/param_raval/")))
         #top nanogenres
         # st.subheader('Top Nanogenres')
 
