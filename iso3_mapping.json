@@ -1,0 +1,1014 @@
+{
+    "Czechoslovakia": {
+        "code": "CZE",
+        "url": "/films/country/czechoslovakia/"
+    },
+    "East Germany": {
+        "code": "DEU",
+        "url": "/films/country/east-germany/"
+    },
+    "Kosovo": {
+        "code": "UNK",
+        "url": "/films/country/kosovo/"
+    },
+    "Yugoslavia": {
+        "code": "YUG",
+        "url": "/films/country/yugoslavia/"
+    },
+    "Afghanistan": {
+        "code": "AFG",
+        "url": "/films/country/afghanistan/"
+    },
+    "\u00c5land Islands": {
+        "code": "ALA",
+        "url": "/films/country/aland-islands/"
+    },
+    "Albania": {
+        "code": "ALB",
+        "url": "/films/country/albania/"
+    },
+    "Algeria": {
+        "code": "DZA",
+        "url": "/films/country/algeria/"
+    },
+    "American Samoa": {
+        "code": "ASM",
+        "url": "/films/country/american-samoa/"
+    },
+    "Andorra": {
+        "code": "AND",
+        "url": "/films/country/andorra/"
+    },
+    "Angola": {
+        "code": "AGO",
+        "url": "/films/country/angola/"
+    },
+    "Anguilla": {
+        "code": "AIA",
+        "url": "/films/country/anguilla/"
+    },
+    "Antarctica": {
+        "code": "ATA",
+        "url": "/films/country/antarctica/"
+    },
+    "Antigua and Barbuda": {
+        "code": "ATG",
+        "url": "/films/country/antigua-and-barbuda/"
+    },
+    "Argentina": {
+        "code": "ARG",
+        "url": "/films/country/argentina/"
+    },
+    "Armenia": {
+        "code": "ARM",
+        "url": "/films/country/armenia/"
+    },
+    "Aruba": {
+        "code": "ABW",
+        "url": "/films/country/aruba/"
+    },
+    "Australia": {
+        "code": "AUS",
+        "url": "/films/country/australia/"
+    },
+    "Austria": {
+        "code": "AUT",
+        "url": "/films/country/austria/"
+    },
+    "Azerbaijan": {
+        "code": "AZE",
+        "url": "/films/country/azerbaijan/"
+    },
+    "Bahamas": {
+        "code": "BHS",
+        "url": "/films/country/bahamas-the/"
+    },
+    "Bahrain": {
+        "code": "BHR",
+        "url": "/films/country/bahrain/"
+    },
+    "Bangladesh": {
+        "code": "BGD",
+        "url": "/films/country/bangladesh/"
+    },
+    "Barbados": {
+        "code": "BRB",
+        "url": "/films/country/barbados/"
+    },
+    "Belarus": {
+        "code": "BLR",
+        "url": "/films/country/belarus/"
+    },
+    "Belgium": {
+        "code": "BEL",
+        "url": "/films/country/belgium/"
+    },
+    "Belize": {
+        "code": "BLZ",
+        "url": "/films/country/belize/"
+    },
+    "Benin": {
+        "code": "BEN",
+        "url": "/films/country/benin/"
+    },
+    "Bermuda": {
+        "code": "BMU",
+        "url": "/films/country/bermuda/"
+    },
+    "Bhutan": {
+        "code": "BTN",
+        "url": "/films/country/bhutan/"
+    },
+    "Bolivia": {
+        "code": "BOL",
+        "url": "/films/country/bolivia/"
+    },
+    "Bonaire, Sint Eustatius and Saba": {
+        "code": "BES",
+        "url": "/films/country/bonaire-sint-eustatius-and-saba/"
+    },
+    "Bosnia and Herzegovina": {
+        "code": "BIH",
+        "url": "/films/country/bosnia-and-herzegovina/"
+    },
+    "Botswana": {
+        "code": "BWA",
+        "url": "/films/country/botswana/"
+    },
+    "Bouvet Island": {
+        "code": "BVT",
+        "url": "/films/country/bouvet-island/"
+    },
+    "Brazil": {
+        "code": "BRA",
+        "url": "/films/country/brazil/"
+    },
+    "British Indian Ocean Territory": {
+        "code": "IOT",
+        "url": "/films/country/british-indian-ocean-territory/"
+    },
+    "Brunei Darussalam": {
+        "code": "BRN",
+        "url": "/films/country/brunei-darussalam/"
+    },
+    "Bulgaria": {
+        "code": "BGR",
+        "url": "/films/country/bulgaria/"
+    },
+    "Burkina Faso": {
+        "code": "BFA",
+        "url": "/films/country/burkina-faso/"
+    },
+    "Burundi": {
+        "code": "BDI",
+        "url": "/films/country/burundi/"
+    },
+    "Cape Verde": {
+        "code": "CPV",
+        "url": "/films/country/cape-verde/"
+    },
+    "Cambodia": {
+        "code": "KHM",
+        "url": "/films/country/cambodia/"
+    },
+    "Cameroon": {
+        "code": "CMR",
+        "url": "/films/country/cameroon/"
+    },
+    "Canada": {
+        "code": "CAN",
+        "url": "/films/country/canada/"
+    },
+    "Cayman Islands": {
+        "code": "CYM",
+        "url": "/films/country/cayman-islands/"
+    },
+    "Central African Republic": {
+        "code": "CAF",
+        "url": "/films/country/central-african-republic/"
+    },
+    "Chad": {
+        "code": "TCD",
+        "url": "/films/country/chad/"
+    },
+    "Chile": {
+        "code": "CHL",
+        "url": "/films/country/chile/"
+    },
+    "China": {
+        "code": "CHN",
+        "url": "/films/country/china/"
+    },
+    "Christmas Island": {
+        "code": "CXR",
+        "url": "/films/country/christmas-island/"
+    },
+    "Cocos (Keeling) Islands": {
+        "code": "CCK",
+        "url": "/films/country/cocos-keeling-islands/"
+    },
+    "Colombia": {
+        "code": "COL",
+        "url": "/films/country/colombia/"
+    },
+    "Comoros": {
+        "code": "COM",
+        "url": "/films/country/comoros/"
+    },
+    "Congo": {
+        "code": "COG",
+        "url": "/films/country/congo/"
+    },
+    "Democratic Republic of Congo": {
+        "code": "COD",
+        "url": "/films/country/democratic-republic-of-congo/"
+    },
+    "Cook Islands": {
+        "code": "COK",
+        "url": "/films/country/cook-islands/"
+    },
+    "Costa Rica": {
+        "code": "CRI",
+        "url": "/films/country/costa-rica/"
+    },
+    "Ivory Coast": {
+        "code": "CIV",
+        "url": "/films/country/ivory-coast/"
+    },
+    "Croatia": {
+        "code": "HRV",
+        "url": "/films/country/croatia/"
+    },
+    "Cuba": {
+        "code": "CUB",
+        "url": "/films/country/cuba/"
+    },
+    "Cura\u00e7ao": {
+        "code": "CUW",
+        "url": "/films/country/curacao/"
+    },
+    "Cyprus": {
+        "code": "CYP",
+        "url": "/films/country/cyprus/"
+    },
+    "Czechia": {
+        "code": "CZE",
+        "url": "/films/country/czechia/"
+    },
+    "Denmark": {
+        "code": "DNK",
+        "url": "/films/country/denmark/"
+    },
+    "Djibouti": {
+        "code": "DJI",
+        "url": "/films/country/djibouti/"
+    },
+    "Dominica": {
+        "code": "DMA",
+        "url": "/films/country/dominica/"
+    },
+    "Dominican Republic": {
+        "code": "DOM",
+        "url": "/films/country/dominican-republic/"
+    },
+    "Ecuador": {
+        "code": "ECU",
+        "url": "/films/country/ecuador/"
+    },
+    "Egypt": {
+        "code": "EGY",
+        "url": "/films/country/egypt/"
+    },
+    "El Salvador": {
+        "code": "SLV",
+        "url": "/films/country/el-salvador/"
+    },
+    "Equatorial Guinea": {
+        "code": "GNQ",
+        "url": "/films/country/equatorial-guinea/"
+    },
+    "Eritrea": {
+        "code": "ERI",
+        "url": "/films/country/eritrea/"
+    },
+    "Estonia": {
+        "code": "EST",
+        "url": "/films/country/estonia/"
+    },
+    "Swaziland": {
+        "code": "SWZ",
+        "url": "/films/country/swaziland/"
+    },
+    "Ethiopia": {
+        "code": "ETH",
+        "url": "/films/country/ethiopia/"
+    },
+    "Falkland Islands": {
+        "code": "FLK",
+        "url": "/films/country/falkland-islands/"
+    },
+    "Faroe Islands": {
+        "code": "FRO",
+        "url": "/films/country/faroe-islands/"
+    },
+    "Fiji": {
+        "code": "FJI",
+        "url": "/films/country/fiji/"
+    },
+    "Finland": {
+        "code": "FIN",
+        "url": "/films/country/finland/"
+    },
+    "France": {
+        "code": "FRA",
+        "url": "/films/country/france/"
+    },
+    "French Guiana": {
+        "code": "GUF",
+        "url": "/films/country/french-guiana/"
+    },
+    "French Polynesia": {
+        "code": "PYF",
+        "url": "/films/country/french-polynesia/"
+    },
+    "French Southern Territories": {
+        "code": "ATF",
+        "url": "/films/country/french-southern-territories/"
+    },
+    "Gabon": {
+        "code": "GAB",
+        "url": "/films/country/gabon/"
+    },
+    "Gambia": {
+        "code": "GMB",
+        "url": "/films/country/gambia/"
+    },
+    "Georgia": {
+        "code": "GEO",
+        "url": "/films/country/georgia/"
+    },
+    "Germany": {
+        "code": "DEU",
+        "url": "/films/country/germany/"
+    },
+    "Ghana": {
+        "code": "GHA",
+        "url": "/films/country/ghana/"
+    },
+    "Gibraltar": {
+        "code": "GIB",
+        "url": "/films/country/gibraltar/"
+    },
+    "Greece": {
+        "code": "GRC",
+        "url": "/films/country/greece/"
+    },
+    "Greenland": {
+        "code": "GRL",
+        "url": "/films/country/greenland/"
+    },
+    "Grenada": {
+        "code": "GRD",
+        "url": "/films/country/grenada/"
+    },
+    "Guadeloupe": {
+        "code": "GLP",
+        "url": "/films/country/guadeloupe/"
+    },
+    "Guam": {
+        "code": "GUM",
+        "url": "/films/country/guam/"
+    },
+    "Guatemala": {
+        "code": "GTM",
+        "url": "/films/country/guatemala/"
+    },
+    "Guernsey": {
+        "code": "GGY",
+        "url": "/films/country/guernsey/"
+    },
+    "Guinea": {
+        "code": "GIN",
+        "url": "/films/country/guinea/"
+    },
+    "Guinea-Bissau": {
+        "code": "GNB",
+        "url": "/films/country/guinea-bissau/"
+    },
+    "Guyana": {
+        "code": "GUY",
+        "url": "/films/country/guyana/"
+    },
+    "Haiti": {
+        "code": "HTI",
+        "url": "/films/country/haiti/"
+    },
+    "Heard Island and McDonald Islands": {
+        "code": "HMD",
+        "url": "/films/country/heard-island-and-mcdonald-islands/"
+    },
+    "Holy See": {
+        "code": "VAT",
+        "url": "/films/country/holy-see/"
+    },
+    "Honduras": {
+        "code": "HND",
+        "url": "/films/country/honduras/"
+    },
+    "Hong Kong": {
+        "code": "HKG",
+        "url": "/films/country/hong-kong/"
+    },
+    "Hungary": {
+        "code": "HUN",
+        "url": "/films/country/hungary/"
+    },
+    "Iceland": {
+        "code": "ISL",
+        "url": "/films/country/iceland/"
+    },
+    "India": {
+        "code": "IND",
+        "url": "/films/country/india/"
+    },
+    "Indonesia": {
+        "code": "IDN",
+        "url": "/films/country/indonesia/"
+    },
+    "Iran": {
+        "code": "IRN",
+        "url": "/films/country/iran/"
+    },
+    "Iraq": {
+        "code": "IRQ",
+        "url": "/films/country/iraq/"
+    },
+    "Ireland": {
+        "code": "IRL",
+        "url": "/films/country/ireland/"
+    },
+    "Isle of Man": {
+        "code": "IMN",
+        "url": "/films/country/isle-of-man/"
+    },
+    "Israel": {
+        "code": "ISR",
+        "url": "/films/country/israel/"
+    },
+    "Italy": {
+        "code": "ITA",
+        "url": "/films/country/italy/"
+    },
+    "Jamaica": {
+        "code": "JAM",
+        "url": "/films/country/jamaica/"
+    },
+    "Japan": {
+        "code": "JPN",
+        "url": "/films/country/japan/"
+    },
+    "Jersey": {
+        "code": "JEY",
+        "url": "/films/country/jersey/"
+    },
+    "Jordan": {
+        "code": "JOR",
+        "url": "/films/country/jordan/"
+    },
+    "Kazakhstan": {
+        "code": "KAZ",
+        "url": "/films/country/kazakhstan/"
+    },
+    "Kenya": {
+        "code": "KEN",
+        "url": "/films/country/kenya/"
+    },
+    "Kiribati": {
+        "code": "KIR",
+        "url": "/films/country/kiribati/"
+    },
+    "North Korea": {
+        "code": "PRK",
+        "url": "/films/country/north-korea/"
+    },
+    "South Korea": {
+        "code": "KOR",
+        "url": "/films/country/south-korea/"
+    },
+    "Kuwait": {
+        "code": "KWT",
+        "url": "/films/country/kuwait/"
+    },
+    "Kyrgyzstan": {
+        "code": "KGZ",
+        "url": "/films/country/kyrgyzstan/"
+    },
+    "Lao People's Democratic Republic": {
+        "code": "LAO",
+        "url": "/films/country/lao-peoples-democratic-republic/"
+    },
+    "Latvia": {
+        "code": "LVA",
+        "url": "/films/country/latvia/"
+    },
+    "Lebanon": {
+        "code": "LBN",
+        "url": "/films/country/lebanon/"
+    },
+    "Lesotho": {
+        "code": "LSO",
+        "url": "/films/country/lesotho/"
+    },
+    "Liberia": {
+        "code": "LBR",
+        "url": "/films/country/liberia/"
+    },
+    "Libya": {
+        "code": "LBY",
+        "url": "/films/country/libya/"
+    },
+    "Liechtenstein": {
+        "code": "LIE",
+        "url": "/films/country/liechtenstein/"
+    },
+    "Lithuania": {
+        "code": "LTU",
+        "url": "/films/country/lithuania/"
+    },
+    "Luxembourg": {
+        "code": "LUX",
+        "url": "/films/country/luxembourg/"
+    },
+    "Macao": {
+        "code": "MAC",
+        "url": "/films/country/macao/"
+    },
+    "Madagascar": {
+        "code": "MDG",
+        "url": "/films/country/madagascar/"
+    },
+    "Malawi": {
+        "code": "MWI",
+        "url": "/films/country/malawi/"
+    },
+    "Malaysia": {
+        "code": "MYS",
+        "url": "/films/country/malaysia/"
+    },
+    "Maldives": {
+        "code": "MDV",
+        "url": "/films/country/maldives/"
+    },
+    "Mali": {
+        "code": "MLI",
+        "url": "/films/country/mali/"
+    },
+    "Malta": {
+        "code": "MLT",
+        "url": "/films/country/malta/"
+    },
+    "Marshall Islands": {
+        "code": "MHL",
+        "url": "/films/country/marshall-islands/"
+    },
+    "Martinique": {
+        "code": "MTQ",
+        "url": "/films/country/martinique/"
+    },
+    "Mauritania": {
+        "code": "MRT",
+        "url": "/films/country/mauritania/"
+    },
+    "Mauritius": {
+        "code": "MUS",
+        "url": "/films/country/mauritius/"
+    },
+    "Mayotte": {
+        "code": "MYT",
+        "url": "/films/country/mayotte/"
+    },
+    "Mexico": {
+        "code": "MEX",
+        "url": "/films/country/mexico/"
+    },
+    "Federated States of Micronesia": {
+        "code": "FSM",
+        "url": "/films/country/federated-states-of-micronesia/"
+    },
+    "Republic of Moldova": {
+        "code": "MDA",
+        "url": "/films/country/moldova-the-republic-of/"
+    },
+    "Monaco": {
+        "code": "MCO",
+        "url": "/films/country/monaco/"
+    },
+    "Mongolia": {
+        "code": "MNG",
+        "url": "/films/country/mongolia/"
+    },
+    "Montenegro": {
+        "code": "MNE",
+        "url": "/films/country/montenegro/"
+    },
+    "Montserrat": {
+        "code": "MSR",
+        "url": "/films/country/montserrat/"
+    },
+    "Morocco": {
+        "code": "MAR",
+        "url": "/films/country/morocco/"
+    },
+    "Mozambique": {
+        "code": "MOZ",
+        "url": "/films/country/mozambique/"
+    },
+    "Myanmar": {
+        "code": "MMR",
+        "url": "/films/country/myanmar/"
+    },
+    "Namibia": {
+        "code": "NAM",
+        "url": "/films/country/namibia/"
+    },
+    "Nauru": {
+        "code": "NRU",
+        "url": "/films/country/nauru/"
+    },
+    "Nepal": {
+        "code": "NPL",
+        "url": "/films/country/nepal/"
+    },
+    "Netherlands": {
+        "code": "NLD",
+        "url": "/films/country/netherlands/"
+    },
+    "New Caledonia": {
+        "code": "NCL",
+        "url": "/films/country/new-caledonia/"
+    },
+    "New Zealand": {
+        "code": "NZL",
+        "url": "/films/country/new-zealand/"
+    },
+    "Nicaragua": {
+        "code": "NIC",
+        "url": "/films/country/nicaragua/"
+    },
+    "Niger": {
+        "code": "NER",
+        "url": "/films/country/niger/"
+    },
+    "Nigeria": {
+        "code": "NGA",
+        "url": "/films/country/nigeria/"
+    },
+    "Niue": {
+        "code": "NIU",
+        "url": "/films/country/niue/"
+    },
+    "Norfolk Island": {
+        "code": "NFK",
+        "url": "/films/country/norfolk-island/"
+    },
+    "Macedonia": {
+        "code": "MKD",
+        "url": "/films/country/macedonia/"
+    },
+    "Northern Mariana Islands": {
+        "code": "MNP",
+        "url": "/films/country/northern-mariana-islands/"
+    },
+    "Norway": {
+        "code": "NOR",
+        "url": "/films/country/norway/"
+    },
+    "Oman": {
+        "code": "OMN",
+        "url": "/films/country/oman/"
+    },
+    "Pakistan": {
+        "code": "PAK",
+        "url": "/films/country/pakistan/"
+    },
+    "Palau": {
+        "code": "PLW",
+        "url": "/films/country/palau/"
+    },
+    "State of Palestine": {
+        "code": "PSE",
+        "url": "/films/country/state-of-palestine/"
+    },
+    "Panama": {
+        "code": "PAN",
+        "url": "/films/country/panama/"
+    },
+    "Papua New Guinea": {
+        "code": "PNG",
+        "url": "/films/country/papua-new-guinea/"
+    },
+    "Paraguay": {
+        "code": "PRY",
+        "url": "/films/country/paraguay/"
+    },
+    "Peru": {
+        "code": "PER",
+        "url": "/films/country/peru/"
+    },
+    "Philippines": {
+        "code": "PHL",
+        "url": "/films/country/philippines/"
+    },
+    "Pitcairn": {
+        "code": "PCN",
+        "url": "/films/country/pitcairn/"
+    },
+    "Poland": {
+        "code": "POL",
+        "url": "/films/country/poland/"
+    },
+    "Portugal": {
+        "code": "PRT",
+        "url": "/films/country/portugal/"
+    },
+    "Puerto Rico": {
+        "code": "PRI",
+        "url": "/films/country/puerto-rico/"
+    },
+    "Qatar": {
+        "code": "QAT",
+        "url": "/films/country/qatar/"
+    },
+    "R\u00e9union": {
+        "code": "REU",
+        "url": "/films/country/reunion/"
+    },
+    "Romania": {
+        "code": "ROU",
+        "url": "/films/country/romania/"
+    },
+    "Russian Federation": {
+        "code": "RUS",
+        "url": "/films/country/russian-federation/"
+    },
+    "Rwanda": {
+        "code": "RWA",
+        "url": "/films/country/rwanda/"
+    },
+    "Saint Barth\u00e9lemy": {
+        "code": "BLM",
+        "url": "/films/country/saint-barthelemy/"
+    },
+    "Saint Helena, Ascension and Tristan da Cunha": {
+        "code": "SHN",
+        "url": "/films/country/saint-helena-ascension-and-tristan-da-cunha/"
+    },
+    "Saint Kitts and Nevis": {
+        "code": "KNA",
+        "url": "/films/country/saint-kitts-and-nevis/"
+    },
+    "Saint Lucia": {
+        "code": "LCA",
+        "url": "/films/country/saint-lucia/"
+    },
+    "Saint Martin (French part)": {
+        "code": "MAF",
+        "url": "/films/country/saint-martin-french-part/"
+    },
+    "Saint Pierre and Miquelon": {
+        "code": "SPM",
+        "url": "/films/country/saint-pierre-and-miquelon/"
+    },
+    "Saint Vincent and the Grenadines": {
+        "code": "VCT",
+        "url": "/films/country/saint-vincent-and-the-grenadines/"
+    },
+    "Samoa": {
+        "code": "WSM",
+        "url": "/films/country/samoa/"
+    },
+    "San Marino": {
+        "code": "SMR",
+        "url": "/films/country/san-marino/"
+    },
+    "Sao Tome and Principe": {
+        "code": "STP",
+        "url": "/films/country/sao-tome-and-principe/"
+    },
+    "Saudi Arabia": {
+        "code": "SAU",
+        "url": "/films/country/saudi-arabia/"
+    },
+    "Senegal": {
+        "code": "SEN",
+        "url": "/films/country/senegal/"
+    },
+    "Serbia": {
+        "code": "SRB",
+        "url": "/films/country/serbia/"
+    },
+    "Seychelles": {
+        "code": "SYC",
+        "url": "/films/country/seychelles/"
+    },
+    "Sierra Leone": {
+        "code": "SLE",
+        "url": "/films/country/sierra-leone/"
+    },
+    "Singapore": {
+        "code": "SGP",
+        "url": "/films/country/singapore/"
+    },
+    "Sint Maarten (Dutch part)": {
+        "code": "SXM",
+        "url": "/films/country/sint-maarten-dutch-part/"
+    },
+    "Slovakia": {
+        "code": "SVK",
+        "url": "/films/country/slovakia/"
+    },
+    "Slovenia": {
+        "code": "SVN",
+        "url": "/films/country/slovenia/"
+    },
+    "Solomon Islands": {
+        "code": "SLB",
+        "url": "/films/country/solomon-islands/"
+    },
+    "Somalia": {
+        "code": "SOM",
+        "url": "/films/country/somalia/"
+    },
+    "South Africa": {
+        "code": "ZAF",
+        "url": "/films/country/south-africa/"
+    },
+    "South Georgia and the South Sandwich Islands": {
+        "code": "SGS",
+        "url": "/films/country/south-georgia-and-the-south-sandwich-islands/"
+    },
+    "South Sudan": {
+        "code": "SSD",
+        "url": "/films/country/south-sudan/"
+    },
+    "Spain": {
+        "code": "ESP",
+        "url": "/films/country/spain/"
+    },
+    "Sri Lanka": {
+        "code": "LKA",
+        "url": "/films/country/sri-lanka/"
+    },
+    "Sudan": {
+        "code": "SDN",
+        "url": "/films/country/sudan/"
+    },
+    "Suriname": {
+        "code": "SUR",
+        "url": "/films/country/suriname/"
+    },
+    "Svalbard and Jan Mayen": {
+        "code": "SJM",
+        "url": "/films/country/svalbard-and-jan-mayen/"
+    },
+    "Sweden": {
+        "code": "SWE",
+        "url": "/films/country/sweden/"
+    },
+    "Switzerland": {
+        "code": "CHE",
+        "url": "/films/country/switzerland/"
+    },
+    "Syrian Arab Republic": {
+        "code": "SYR",
+        "url": "/films/country/syrian-arab-republic/"
+    },
+    "Taiwan": {
+        "code": "TWN",
+        "url": "/films/country/taiwan/"
+    },
+    "Tajikistan": {
+        "code": "TJK",
+        "url": "/films/country/tajikistan/"
+    },
+    "United Republic of Tanzania": {
+        "code": "TZA",
+        "url": "/films/country/united-republic-of-tanzania/"
+    },
+    "Thailand": {
+        "code": "THA",
+        "url": "/films/country/thailand/"
+    },
+    "Timor-Leste": {
+        "code": "TLS",
+        "url": "/films/country/timor-leste/"
+    },
+    "Togo": {
+        "code": "TGO",
+        "url": "/films/country/togo/"
+    },
+    "Tokelau": {
+        "code": "TKL",
+        "url": "/films/country/tokelau/"
+    },
+    "Tonga": {
+        "code": "TON",
+        "url": "/films/country/tonga/"
+    },
+    "Trinidad and Tobago": {
+        "code": "TTO",
+        "url": "/films/country/trinidad-and-tobago/"
+    },
+    "Tunisia": {
+        "code": "TUN",
+        "url": "/films/country/tunisia/"
+    },
+    "Turkey": {
+        "code": "TUR",
+        "url": "/films/country/turkey/"
+    },
+    "Turkmenistan": {
+        "code": "TKM",
+        "url": "/films/country/turkmenistan/"
+    },
+    "Turks and Caicos Islands": {
+        "code": "TCA",
+        "url": "/films/country/turks-and-caicos-islands/"
+    },
+    "Tuvalu": {
+        "code": "TUV",
+        "url": "/films/country/tuvalu/"
+    },
+    "Uganda": {
+        "code": "UGA",
+        "url": "/films/country/uganda/"
+    },
+    "Ukraine": {
+        "code": "UKR",
+        "url": "/films/country/ukraine/"
+    },
+    "United Arab Emirates": {
+        "code": "ARE",
+        "url": "/films/country/united-arab-emirates/"
+    },
+    "UK": {
+        "code": "GBR",
+        "url": "/films/country/uk/"
+    },
+    "USA": {
+        "code": "USA",
+        "url": "/films/country/usa/"
+    },
+    "United States Minor Outlying Islands": {
+        "code": "UMI",
+        "url": "/films/country/united-states-minor-outlying-islands/"
+    },
+    "Uruguay": {
+        "code": "URY",
+        "url": "/films/country/uruguay/"
+    },
+    "Uzbekistan": {
+        "code": "UZB",
+        "url": "/films/country/uzbekistan/"
+    },
+    "Vanuatu": {
+        "code": "VUT",
+        "url": "/films/country/vanuatu/"
+    },
+    "Bolivarian Republic of Venezuela": {
+        "code": "VEN",
+        "url": "/films/country/bolivarian-republic-of-venezuela/"
+    },
+    "Vietnam": {
+        "code": "VNM",
+        "url": "/films/country/vietnam/"
+    },
+    "British Virgin Islands": {
+        "code": "VGB",
+        "url": "/films/country/virgin-islands-british/"
+    },
+    "US Virgin Islands": {
+        "code": "VIR",
+        "url": "/films/country/us-virgin-islands/"
+    },
+    "Wallis and Futuna": {
+        "code": "WLF",
+        "url": "/films/country/wallis-and-futuna/"
+    },
+    "Western Sahara": {
+        "code": "ESH",
+        "url": "/films/country/western-sahara/"
+    },
+    "Yemen": {
+        "code": "YEM",
+        "url": "/films/country/yemen/"
+    },
+    "Zambia": {
+        "code": "ZMB",
+        "url": "/films/country/zambia/"
+    },
+    "Zimbabwe": {
+        "code": "ZWE",
+        "url": "/films/country/zimbabwe/"
+    }
+}

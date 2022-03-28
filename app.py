@@ -17,12 +17,14 @@ from concurrent.futures import as_completed
 from requests_futures.sessions import FuturesSession
 import time
 import textwrap
+import webbrowser
 
 import asyncio
 import requests_async as requests_a
 import platform
 # from memory_profiler import profile
 from sys import getsizeof
+import json
 
 from requests_async.exceptions import HTTPError, RequestException, Timeout
 import cchardet
@@ -41,6 +43,8 @@ import numpy as np
 
 from bokeh.io import curdoc, show
 from bokeh.models import ColumnDataSource, Grid, ImageURL, LinearAxis, Plot, Range1d
+
+# from country_map import COUNTRY_MAP
 
 _domain = "https://letterboxd.com"
 film_ratings = []
@@ -257,8 +261,8 @@ def get_film_data(filmget, str_idx, section_placeholder, meta_data_dict):
   # filmget = session.get(film_page)
   str_0 = "" if meta_data_dict['len_urls'] < 500 else ". This might take a while. Till then look at some stats that we found about your profile..."
   dyk_str = "## *Did you know?*\n"
-  idx_msgs = {0:f"## Wow! you have watched {meta_data_dict['len_ratings']} films"+str_0,
-            250: dyk_str+f"## You watched {meta_data_dict['nfilms_this_month']} films this month and {meta_data_dict['nfilms_this_year']} this year",
+  idx_msgs = {0:f"## Wow! you have rated {meta_data_dict['len_ratings']} films"+str_0,
+            250: dyk_str+f"## You rated {meta_data_dict['nfilms_this_month']} films this month and {meta_data_dict['nfilms_this_year']} this year",
             900: dyk_str+f"## Last year, you rated the most films in {meta_data_dict['nfilms_last_year_most_month']} ({meta_data_dict['nfilms_last_year_most_month_count']}) \
                     and rated films the highest in {meta_data_dict['nfilms_last_year_most_rated_month']} ({meta_data_dict['nfilms_last_year_most_rated_month_val']}).",
             1500: dyk_str+f"## You usually rate films on Letterboxd in the {meta_data_dict['nfilms_time_of_day']}.",
@@ -499,7 +503,7 @@ def get_film_df(user_name):
         meta_data_dict['current_batch_idx']=batch_idx
         ffd=ffd+asyncio.run(get_film_main(films_url_batch, meta_data_dict))
     
-    print(f"ffd size {getsizeof(ffd), len(ffd)}")
+    # print(f"ffd size {getsizeof(ffd), len(ffd)}")
     # ffd = asyncio.run(get_film_main(films_url_list_new, meta_data_dict))
 
     # with FuturesSession() as session:
@@ -599,6 +603,8 @@ def make_bar_chart(data, x, y, color=None, text=None, ccs=None):
     fig.update(layout_coloraxis_showscale=False)
     return fig
 
+def open_link(url):
+    webbrowser.open_new_tab(url)
 
 def main():
     #Main page
@@ -610,16 +616,22 @@ def main():
     with row0_2:
         st.write('')
 
-    row0_2.subheader(
-        'A Streamlit web app by Param Raval')
+    row0_2.subheader('A web app by Param Raval')
+
+    row01_1, row01_2, row01_3, row01_spacer3 = st.columns((5, .5, 1, .5))
+
+    row01_1.markdown("""---""")
+    row01_2.button('LinkedIn', on_click=open_link, args=(('https://www.linkedin.com/in/param-raval/',)))
+    row01_3.button('Paradise Cinema', on_click=open_link, args=(('https://paradisecinemaa.wordpress.com/',)))
 
     row1_spacer1, row1_1, row1_spacer2 = st.columns((.1, 3.2, .1))
 
     with row1_1:
         st.markdown(
-            "**To begin, please enter your [Letterboxd profile](https://www.letterboxd.com/) (or just use mine!).** 👇")
+            "#### <h5><b> To begin, please enter your <a href=https://www.letterboxd.com/ style=\"color: #b9babd; text-decoration: underline;\">Letterboxd</a> **profile name (or just use mine!).** 👇 </b></h5>", 
+            unsafe_allow_html=True)
 
-    row2_spacer1, row2_1, row2_spacer2 = st.columns((.1, 3.2, .1))
+    row2_spacer1, row2_1, row2_spacer2, row2_2, row2_spacer3 = st.columns([.1, 2, .2, 1, .1])
     with row2_1:
         default_username = "param_raval"
         user_input = st.text_input(
@@ -627,13 +639,21 @@ def main():
         need_help = st.expander('Need help? 👉')
         with need_help:
             st.markdown(
-                "Having trouble finding your Letterboxd profile? Head to the [Letterboxd website](https://www.letterboxd.com/) and click your profile at the top.")
+                "Having trouble finding your Letterboxd profile? Head to the [Letterboxd website](https://www.letterboxd.com/) and click on your profile at the top.")
 
         if not user_input:
             user_input = f"{default_username}"
 
         bt1 = st.button("Go!")
     
+    with row2_2:
+        st.subheader(" ")
+        st.markdown(f'<p style="background-color:#101010;color:#101010;font-size:24px;">--</p>', unsafe_allow_html=True)
+
+    # with row2_3:
+    #     st.subheader(" ")
+    #     st.markdown(f'<p style="background-color:#101010;color:#101010;font-size:24px;">--</p>', unsafe_allow_html=True)
+
     if not bt1:
         st.markdown(f"")
     else:
@@ -650,8 +670,8 @@ def main():
         st.markdown(f"## Analyzing {user_input}'s profile")
         st.markdown("""---""")
 
-        st.subheader("*Years* in film...explored by you")
-        st.markdown(f"#### Number of films you watched across release years")
+        st.subheader("You explored films from a spectrum of years")
+        st.markdown(f"#### Number of films you rated across release years")
         
         df=df[~(df['year']==np.nan) & (df['year'].notna())]
         df=df[~(df['film_name']==np.nan) & (df['film_name'].notna())]
@@ -686,7 +706,7 @@ def main():
 
 
         st.subheader("Decades in film!")
-        st.markdown(f"#### Decades of films...watched by you!")
+        st.markdown(f"#### Decades of films watched by you!")
 
         fig = make_bar_chart( data = df_count2,
                         x = "decade",
@@ -917,9 +937,9 @@ def main():
 
             df_country_cnt=df_country.groupby(by=['only_country']).count().sort_values(by=['index'], ascending=False)
             df_country_cnt['only_country'] = df_country_cnt.index
-            df_country_cnt=df_country_cnt.nlargest(10, 'index')
+            # df_country_cnt=df_country_cnt.nlargest(10, 'index')
 
-            fig = make_horizontal_bar_chart(data = df_country_cnt,
+            fig = make_horizontal_bar_chart(data = df_country_cnt.nlargest(10, 'index'),
                                       y = "only_country",
                                       x = "index",
                                       ccs="green")
@@ -1107,7 +1127,7 @@ def main():
             
             p.hbar(y='only_theme', right='rating', height=0.7, source=source,
                    color="#20b2aa", hover_fill_color="crimson", hover_line_color="crimson")
-            p.add_tools(HoverTool(tooltips="@rating rating"))
+            p.add_tools(HoverTool(tooltips="@rating{0.0} rating"))
 
             url = root_link+"@only_theme_link"
             taptool = p.select(type=TapTool)
@@ -1145,10 +1165,16 @@ def main():
 
         #directors
         st.subheader("Some of your favourite directors and how you rated their films")
-        director_df = df[['director', 'avg_rating']].groupby(by='director').mean().reset_index()
+        # director_df = df[['director', 'avg_rating']].groupby(by='director').mean().reset_index()
+        marker_size_scale=5
+        director_df=df[['director', 'avg_rating']][~(df['director']==np.nan) & (df['director'].notna()) &
+                                ~(df['director']=="") & ~(df['director']==" ")]
 
-        v = df['director'].value_counts()
-        director_df_filtered=df[(df['director'].isin(v[v>3].index.values.tolist()))]
+        v = director_df['director'].value_counts()
+        director_df_filtered=director_df[(director_df['director'].isin(v[v>3].index.values.tolist()))]
+        if len(director_df_filtered)==0:
+            director_df_filtered=director_df
+            marker_size_scale=20
         director_df_rate = director_df_filtered[['director', 'avg_rating']].groupby(by='director').mean().reset_index().sort_values(by=['avg_rating'], ascending=False)
         director_df_count = director_df_filtered[['director', 'avg_rating']].groupby(by='director').count().sort_values(by=['avg_rating'], ascending=False).reset_index().rename(columns={'avg_rating':'count'})
         director_df=director_df_rate[['director', 'avg_rating']].merge(director_df_count[['director', 'count']], on='director', how='inner').sort_values(by=['avg_rating'], ascending=False).nlargest(15, 'count')
@@ -1165,7 +1191,7 @@ def main():
                 '%{x}<br>'+
                 '%{y} films<br><extra></extra>',
             marker=dict(
-                size=np.multiply(director_df['count'].values, 5).tolist(),
+                size=np.multiply(director_df['count'].values, marker_size_scale).tolist(),
                 color=list(np.arange(100, 100+(16-1)*15, 15)),
                 showscale=False,
                 line=dict(width=0)
@@ -1179,22 +1205,47 @@ def main():
         fig.layout.plot_bgcolor="#101010"
         fig.update(layout_showlegend=False)
 
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config = {'displayModeBar': False})
 
         st.markdown("""---""")
         
-        st.markdown("""## Look at the world through the films you've watched...""")
-        df_country_cnt2 = df_country_cnt
-        df_country_cnt2['COUNTRY'] = df_country_cnt2['only_country'].astype(str)
-        df_country_cnt2 = df_country_cnt2.drop('only_country', axis=1)
-        df_country_cnt2['count'] = df_country_cnt2['index'].astype(str)
-        df_country_cnt2 = df_country_cnt2.drop('index', axis=1)
-        df_country_cnt2.reset_index(drop=True, inplace=True)
+        st.markdown("""## Look at the world through the films you've rated...""")
+
+        df_country = df[['film_name', 'countries']]
+        df_country=df_country[~(df_country['countries']==np.nan) & (df_country['countries'].notna())].reset_index().drop('index', axis=1)
+
+        if isinstance(df_country['countries'].values.tolist()[0], str):
+          df_country['countries'] = df_country['countries'].apply(lambda x: ast.literal_eval(x))
+
+        df_country['only_country'] = df_country['countries']
+        df_country['only_country'] = [[e for e in ele] if ele is not np.nan else ele for ele in df_country['only_country'].values.tolist()]
+
+        df_country=df_country['only_country'].explode().reset_index()
+        df_country['index'] = df_country.index
+
+        df_country_cnt=df_country.groupby(by=['only_country']).count().sort_values(by=['index'], ascending=False)
+        df_country_cnt['only_country'] = df_country_cnt.index
+        
+        df_country_cnt['COUNTRY'] = df_country_cnt['only_country'].astype(str)
+        df_country_cnt = df_country_cnt.drop('only_country', axis=1)
+        df_country_cnt['count'] = df_country_cnt['index'].astype(str)
+        df_country_cnt = df_country_cnt.drop('index', axis=1)
+        df_country_cnt.reset_index(drop=True, inplace=True)
+
+
+        with open('./iso3_mapping.json') as f:
+            country_mapping=json.load(f)
+        
+        df_country_cnt=df_country_cnt[df_country_cnt['COUNTRY'].isin(list(country_mapping.keys()))]
+        df_country_cnt['code'] = [country_mapping[cname]['code'] for cname in df_country_cnt['COUNTRY'].values.tolist() if cname in country_mapping.keys()]
         
         fig = go.Figure(data=go.Choropleth(
-            locations = df_country_cnt2['COUNTRY'],
-            locationmode="country names",
-            z = df_country_cnt2['count'],
+            locations = df_country_cnt['code'],
+            # locationmode="country names",
+            z = df_country_cnt['count'],
+            text=df_country_cnt['COUNTRY'],
+            hovertemplate='<b>%{text}</b><br>%{z} films<extra></extra>',
+            # hovertext=df_country_cnt['count'],
             colorscale = 'greens',
             autocolorscale=False,
             reversescale=True,
@@ -1207,7 +1258,7 @@ def main():
                 showframe=False,
                 showcoastlines=False,
                 projection_type='equirectangular',
-                scope='world'
+                # scope='world'
             ),
             width=1400,
             height=700
@@ -1218,7 +1269,7 @@ def main():
         fig.update_traces(showscale=False)
         st.plotly_chart(fig, config = {'displayModeBar': False})
 
-        df_country_cnt2=None
+        df_country_cnt=None
         #top nanogenres
         # st.subheader('Top Nanogenres')
 
